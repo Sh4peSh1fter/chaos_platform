@@ -173,6 +173,14 @@ def add_fault():
     return jsonify({ 'result' : output})
 
 
+def get_one_object(request,identifier):
+    faults = mongo.db.faults
+    query = faults.find_one({'name' : name})
+    if query:
+        output = {'name' : query['name'],  'content' : query['content'], 'active' : query['active'], 'targets' : query['targets']}
+    else :
+        output = "fault not found"
+    return jsonify(output)
 
 def parse_request(request_dict,default_values_dict):
     default_keys = default_values_dict.keys()
