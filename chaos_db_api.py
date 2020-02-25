@@ -109,6 +109,7 @@ def add_fault():
 
 
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
+    # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
     query = objects.find_one({identifier_key : identifier_value})
     if query:
@@ -121,6 +122,7 @@ def get_one_object(collection,identifier_key,identifier_value,expected_returned_
 
 
 def get_all_objects(collection,expected_returned_keys):
+    # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
     output = []
     for query in objects.find():
@@ -132,6 +134,7 @@ def get_all_objects(collection,expected_returned_keys):
     return jsonify({'result' : output})
 
 def add_object_to_db(collection,json_object,expected_returned_keys,identifier_key,identifier_value,default_request_values):
+    # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
     # Last fault is in format of DAY:MONTH:YEAR:HOUR:MINUTE:SECOND
     json_object = parse_json_object(json_object, default_request_values)
@@ -168,5 +171,5 @@ def add_data_to_array(collection,identifier_key_value,data,array_name):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    #app.run(debug=True)
     app.run(host='0.0.0.0')
