@@ -1,0 +1,32 @@
+#/bin/bash
+mongod &
+
+
+mongo --eval 'db.createCollection("servers", { validator : { $jsonSchema : { bsonType : "object", required : ["dns","groups","active"], properties : {  dns : { bsonType : "string", description : "Must be a string and is required"  }, ip : { bsonType: "string", description: "Must be a string"  }, groups: { bsonType: "array", description: "must be an array and is required" }, last_fault: { bsonType: "string", description : "must be a string " }, active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
+mongo --eval 'db.createCollection("groups", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  },last_fault: { bsonType: "string", description : "must be a string " }, members: { bsonType: "array", description: "must be an array" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
+
+mongo --eval 'db.createCollection("probes", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active","content","language"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "language" : { bsonType : "string", description : "Must be a string and is required"  }, content : { bsonType: "string", description: "must be a string and is required" }, last_updated: { bsonType: "string", description: "must be a string and is required" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
+mongo --eval 'db.createCollection("methods", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active","content","language"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "language" : { bsonType : "string", description : "Must be a string and is required"  }, "roolback": { bsonType : "string", description : "Must be a string "  }, content : { bsonType: "string", description: "must be a string and is required" }, last_updated: { bsonType: "string", description: "must be a string and is required" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
+mongo --eval 'db.createCollection("rollbacks", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active","content","language"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "language" : { bsonType : "string", description : "Must be a string and is required"  }, "method": { bsonType : "string", description : "Must be a string "  }, content : { bsonType: "string", description: "must be a string and is required" }, last_updated: { bsonType: "string", description: "must be a string and is required" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } ' chaos
+
+mongo --eval 'db.createCollection("faults", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active","probes","methods","rollbacks","targets"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "probes" : { bsonType : "array", description : "Must be an array and is required"  }, "methods": { bsonType : "array", description : "Must be an array and is required "  }, "targets": { bsonType : "array", description : "Must be an array and is required "  }, "rollbacks" : { bsonType: "array", description: "must be an array and is required" }, last_updated: { bsonType: "string", description: "must be a string and is required" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
+mongo --eval 'db.servers.insert({dns : "test_server2", groups : ["linux_servers"] , active : true, last_fault : "0012150000"})' chaos
+
+mongo --eval 'db.servers.insert({dns : "test_server1", groups : ["linux_servers","web_servers"], active : false})' chaos
+
+mongo --eval 'db.groups.insert({name : "web_servers", active: true})' chaos
+
+mongo --eval 'db.groups.insert({name : "linux_servers", active: true})' chaos
+
+mongo --eval 'db.probes.insert({name : "linux_httpd_is_running.py", active : true , content :"aW1wb3J0IG9zCgpkZWYgZ2V0X3NlcnZpY2Vfc3RhdHVzKHNlcnZpY2VfbmFtZSk6CiAgICBzZXJ2aWNlX3N0YXR1cyA9IG9zLnN5c3RlbSgic2VydmljZSB7fSBzdGF0dXMiLmZvcm1hdChzZXJ2aWNlX25hbWUpKQogICAgaWYgc2VydmljZV9zdGF0dXMgPT0gMCA6CiAgICAgICAgcmV0dXJuIFRydWUKICAgIGVsc2UgOgogICAgICAgIHJldHVybiBGYWxzZQoKaWYgX19uYW1lX18gPT0gJ19fbWFpbl9fJzoKICAgIGdldF9zZXJ2aWNlX3N0YXR1cygiaHR0cGQiKQ==",targets : ["linux_servers","web_servers","apache_servers"],"language": "python"})' chaos
+
+mongo --eval 'db.methods.insert({name : "linux_stop_httpd.py", active : true , content :"aW1wb3J0IG9zCgpkZWYgc3RvcF9zZXJ2aWNlKHNlcnZpY2VfbmFtZSk6CiAgICBzZXJ2aWNlX3N0YXR1cyA9IG9zLnN5c3RlbSgic3VkbyBzZXJ2aWNlIHt9IHN0b3AiLmZvcm1hdChzZXJ2aWNlX25hbWUpKQogICAgcmV0dXJuIHNlcnZpY2Vfc3RhdHVzCgoKaWYgX19uYW1lX18gPT0gJ19fbWFpbl9fJzoKICAgIHN0b3Bfc2VydmljZSgiaHR0cGQiKQ==",targets : ["linux_servers","web_servers","apache_servers"],"language": "python"})' chaos
+
+mongo --eval 'db.rollbacks.insert({name : "linux_restart_httpd.py", active : true , content :"aW1wb3J0IG9zCgpkZWYgcmVzdGFydF9zZXJ2aWNlKHNlcnZpY2VfbmFtZSk6CiAgICBzZXJ2aWNlX3N0YXR1cyA9IG9zLnN5c3RlbSgic3VkbyBzZXJ2aWNlIHt9IHJlc3RhcnQiLmZvcm1hdChzZXJ2aWNlX25hbWUpKQoKICAgIHJldHVybiBzZXJ2aWNlX3N0YXR1cwoKCmlmIF9fbmFtZV9fID09ICdfX21haW5fXyc6CiAgICByZXN0YXJ0X3NlcnZpY2UoImh0dHBkIik=",targets : ["linux_servers","web_servers","apache_servers"],"language": "python"})' chaos
+
+mongo --eval 'db.faults.insert({"name" : "stopping_httpd_service", active : true , probes : ["linux_httpd_is_running.py"] ,methods : ["linux_stop_httpd.py"],rollbacks : ["linux_restart_httpd.py"],targets : ["linux_servers", "web_servers"] })' chaos
