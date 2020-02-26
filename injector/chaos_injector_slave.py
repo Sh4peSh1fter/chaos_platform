@@ -1,4 +1,3 @@
-import threading
 import requests
 
 class InjectionSlave():
@@ -9,8 +8,6 @@ class InjectionSlave():
         self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
 
     def initiate_fault(self,dns,fault):
-        #fault_thread = threading.Thread(target=self.orchestrate_injection , args=[dns,fault])
-        #fault_thread.start()
         self.orchestrate_injection(dns,fault)
 
     def orchestrate_injection(self,dns,fault):
@@ -27,9 +24,7 @@ class InjectionSlave():
         return server_info, fault_info
 
     def build_script(self,target_info,fault_info):
-        print(target_info)
-        print(fault_info)
-
+        print(target_info,fault_info)
     def inject_script(self):
         pass
 

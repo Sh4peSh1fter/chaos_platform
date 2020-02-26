@@ -75,17 +75,17 @@ def add_group():
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
-@app.route('/fault', methods=['GET'])
-def get_all_faults():
-    collection = "faults"
+@app.route('/method', methods=['GET'])
+def get_all_methods():
+    collection = "methods"
     expected_returned_keys = ["name", "active","targets","content"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
 
-@app.route('/fault/<name>' ,methods=['GET'])
-def get_one_fault(name):
-    collection = "faults"
+@app.route('/method/<name>' ,methods=['GET'])
+def get_one_method(name):
+    collection = "methods"
     identifier_key = "name"
     identifier_value = name
     expected_returned_keys = ["name", "active","targets","content"]
@@ -93,9 +93,77 @@ def get_one_fault(name):
     return output
 
 
-@app.route('/fault', methods=['POST'])
-def add_fault():
-    collection = "faults"
+@app.route('/method', methods=['POST'])
+def add_method():
+    collection = "methods"
+    json_object = request.get_json()
+    expected_returned_keys = ["name", "active"]
+    identifier_key = "name"
+    try:
+        identifier_value = json_object["name"]
+    except KeyError:
+        return "name is a required parameter", 400
+    default_request_values = {'targets' : [], 'active' : False}
+    output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
+    return output
+
+@app.route('/probe', methods=['GET'])
+def get_all_probes():
+    collection = "probes"
+    expected_returned_keys = ["name", "active","targets","content"]
+    output = get_all_objects(collection, expected_returned_keys)
+    return output
+
+
+@app.route('/probe/<name>' ,methods=['GET'])
+def get_one_probe(name):
+    collection = "probes"
+    identifier_key = "name"
+    identifier_value = name
+    expected_returned_keys = ["name", "active","targets","content"]
+    output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
+
+
+
+@app.route('/probe', methods=['POST'])
+def add_probe():
+    collection = "probes"
+    json_object = request.get_json()
+    expected_returned_keys = ["name", "active"]
+    identifier_key = "name"
+    try:
+        identifier_value = json_object["name"]
+    except KeyError:
+        return "name is a required parameter", 400
+    default_request_values = {'targets' : [], 'active' : False}
+    output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
+    return output
+
+
+
+@app.route('/rollback', methods=['GET'])
+def get_all_rollbacks():
+    collection = "rollbacks"
+    expected_returned_keys = ["name", "active","targets","content"]
+    output = get_all_objects(collection, expected_returned_keys)
+    return output
+
+
+@app.route('/rollback/<name>' ,methods=['GET'])
+def get_one_rollback(name):
+    collection = "rollbacks"
+    identifier_key = "name"
+    identifier_value = name
+    expected_returned_keys = ["name", "active","targets","content"]
+    output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
+
+
+
+@app.route('/rollback', methods=['POST'])
+def add_rollback():
+    collection = "rollbacks"
     json_object = request.get_json()
     expected_returned_keys = ["name", "active"]
     identifier_key = "name"
