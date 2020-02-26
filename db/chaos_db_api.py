@@ -178,15 +178,15 @@ def add_rollback():
 
 
 @app.route('/fault', methods=['GET'])
-def get_all_rollbacks():
+def get_all_faults():
     collection = "faults"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","probes","methods","rollbacks"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
 
 @app.route('/fault/<name>' ,methods=['GET'])
-def get_one_rollback(name):
+def get_one_fault(name):
     collection = "faults"
     identifier_key = "name"
     identifier_value = name
@@ -197,7 +197,7 @@ def get_one_rollback(name):
 
 
 @app.route('/fault', methods=['POST'])
-def add_rollback():
+def add_fault():
     collection = "faults"
     json_object = request.get_json()
     expected_returned_keys = ["name", "active","targets","probes","methods","rollbacks"]
@@ -207,7 +207,7 @@ def add_rollback():
     except KeyError:
         return "name is a required parameter", 400
     default_request_values = {'targets' : [], 'active' : False, 'probes' :[] , 'methods':[] , 'rollbacks':[] }
-    
+
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
