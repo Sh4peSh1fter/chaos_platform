@@ -12,7 +12,7 @@ app.config['MONGO_URI'] = mongodb_uri
 
 mongo   = PyMongo(app)
 
-
+@app.route('/servers',methods=['GET'])
 @app.route('/server',methods=['GET'])
 def get_all_servers():
     collection = "servers"
@@ -20,6 +20,7 @@ def get_all_servers():
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
+@app.route('/servers/<dns>' ,methods=['GET'])
 @app.route('/server/<dns>' ,methods=['GET'])
 def get_one_server(dns):
     collection = "servers"
@@ -29,7 +30,7 @@ def get_one_server(dns):
     output = get_one_object(collection,identifier_key,identifier_value,expected_returned_keys)
     return output
 
-
+@app.route('/servers', methods=['POST'])
 @app.route('/server', methods=['POST'])
 def add_server():
     collection = "servers"
@@ -43,6 +44,8 @@ def add_server():
     default_request_values = {'active' : False, 'groups' : [], 'last_fault' : '15:12:00:00:00:00'}
     add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
 
+
+@app.route('/groups', methods=['GET'])
 @app.route('/group', methods=['GET'])
 def get_all_groups():
     collection = "groups"
@@ -51,6 +54,7 @@ def get_all_groups():
     return output
 
 
+@app.route('/groups/<name>' ,methods=['GET'])
 @app.route('/group/<name>' ,methods=['GET'])
 def get_one_group(name):
     collection = "groups"
@@ -61,6 +65,7 @@ def get_one_group(name):
     return output
 
 
+@app.route('/groups', methods=['POST'])
 @app.route('/group', methods=['POST'])
 def add_group():
     collection = "groups"
@@ -75,6 +80,8 @@ def add_group():
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
+
+@app.route('/methods', methods=['GET'])
 @app.route('/method', methods=['GET'])
 def get_all_methods():
     collection = "methods"
@@ -82,7 +89,7 @@ def get_all_methods():
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
-
+@app.route('/methods/<name>' ,methods=['GET'])
 @app.route('/method/<name>' ,methods=['GET'])
 def get_one_method(name):
     collection = "methods"
@@ -92,7 +99,7 @@ def get_one_method(name):
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
-
+@app.route('/methods', methods=['POST'])
 @app.route('/method', methods=['POST'])
 def add_method():
     collection = "methods"
@@ -107,6 +114,7 @@ def add_method():
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
+@app.route('/probes', methods=['GET'])
 @app.route('/probe', methods=['GET'])
 def get_all_probes():
     collection = "probes"
@@ -114,7 +122,7 @@ def get_all_probes():
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
-
+@app.route('/probes/<name>' ,methods=['GET'])
 @app.route('/probe/<name>' ,methods=['GET'])
 def get_one_probe(name):
     collection = "probes"
@@ -125,7 +133,7 @@ def get_one_probe(name):
     return output
 
 
-
+@app.route('/probes', methods=['POST'])
 @app.route('/probe', methods=['POST'])
 def add_probe():
     collection = "probes"
@@ -141,7 +149,7 @@ def add_probe():
     return output
 
 
-
+@app.route('/rollbacks', methods=['GET'])
 @app.route('/rollback', methods=['GET'])
 def get_all_rollbacks():
     collection = "rollbacks"
@@ -149,7 +157,7 @@ def get_all_rollbacks():
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
-
+@app.route('/rollbacks/<name>' ,methods=['GET'])
 @app.route('/rollback/<name>' ,methods=['GET'])
 def get_one_rollback(name):
     collection = "rollbacks"
@@ -160,7 +168,7 @@ def get_one_rollback(name):
     return output
 
 
-
+@app.route('/rollbacks', methods=['POST'])
 @app.route('/rollback', methods=['POST'])
 def add_rollback():
     collection = "rollbacks"
@@ -176,7 +184,7 @@ def add_rollback():
     return output
 
 
-
+@app.route('/faults', methods=['GET'])
 @app.route('/fault', methods=['GET'])
 def get_all_faults():
     collection = "faults"
@@ -184,7 +192,7 @@ def get_all_faults():
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
-
+@app.route('/faults/<name>' ,methods=['GET'])
 @app.route('/fault/<name>' ,methods=['GET'])
 def get_one_fault(name):
     collection = "faults"
@@ -195,7 +203,7 @@ def get_one_fault(name):
     return output
 
 
-
+@app.route('/faults', methods=['POST'])
 @app.route('/fault', methods=['POST'])
 def add_fault():
     collection = "faults"
