@@ -12,8 +12,8 @@ class InjectionSlave():
 
     def orchestrate_injection(self,dns,fault):
         target_info , fault_info = self.get_info(dns,fault)
-        built_script = self.build_script(target_info,fault_info)
-        #injection_logs = self.inject_script()
+        #built_script = self.build_script(target_info,fault_info)
+        injection_logs = self.run_fault(target_info,fault_info)
         #self.send_result(injection_logs)
 
         return target_info , fault_info
@@ -50,10 +50,37 @@ class InjectionSlave():
 
 
     def build_script(self,target_info,fault_info):
-        print(target_info,fault_info)
         return "working"
-    def inject_script(self):
+
+
+    def run_fault(self,target_info,fault_info):
+        fault_parts = fault_info.keys()
+        dns = target_info['dns']
+        probes_output  = []
+        for probe in fault_info['probes'] :
+            probes_output.append(self.probe_server(target_info,probe))
+        if False in probes_output :
+            return {'status': 'injection failed on probes', 'exit_code' : '2'}
+
+        for method in fault_info['methods']:
+            logs = self.inject_script(dns,method)
+            self.send_logs_to_db(logs,"methods_logs")
+        for rollback in fault_info['rollbacks']:
+            logs = self.inject_script(dns,rollback)
+            self.send_logs_to_db(logs,"rollbacks_logs")
+            
+
+    def send_logs_to_db(self,logs,collection):
         pass
+
+
+    def inject_script(self,dns,script):
+        output = ""
+        return output
+
+    def probe_server(self,target_info,probe):
+        result  = True
+        return result
 
     def send_result(self):
         pass
