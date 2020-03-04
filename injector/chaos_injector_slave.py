@@ -71,6 +71,11 @@ class InjectionSlave():
 
         sleep(methods_wait_time)
 
+        probes_result,probes_logs  = self.run_probes(self,probes,target_info)
+
+        if probes_result is True :
+            return {'exit_code' : '0', 'status' : 'Services self healed after injection' }
+
         for rollback in fault_info['rollbacks']:
             logs = self.inject_script(dns,rollback)
             self.send_logs_to_db(logs,"rollbacks_logs")
