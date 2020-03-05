@@ -1,4 +1,5 @@
 import requests
+from time import sleep
 
 class InjectionSlave():
 
@@ -10,9 +11,13 @@ class InjectionSlave():
     def initiate_fault(self,dns,fault):
         return self.orchestrate_injection(dns,fault)
 
+
     def orchestrate_injection(self,dns,fault):
+        # Gets server and fault full information from db
         target_info , fault_info = self.get_info(dns,fault)
+
         #built_script = self.build_script(target_info,fault_info)
+        # Runs the probes,methods and rollbacks by order.
         injection_logs = self.run_fault(target_info,fault_info)
         #self.send_result(injection_logs)
 
@@ -54,21 +59,48 @@ class InjectionSlave():
 
 
     def run_fault(self,target_info,fault_info):
-        fault_parts = fault_info.keys()
         dns = target_info['dns']
-        probes_output  = []
-        for probe in fault_info['probes'] :
-            probes_output.append(self.probe_server(target_info,probe))
-        if False in probes_output :
-            return {'status': 'injection failed on probes', 'exit_code' : '2'}
+        probes = fault_info['probes']
+        probes_result,probe_logs  = self.run_probes(self,probes,target_info)
 
+        if probes_result is False :
+            return {'exit_code' : '2', 'status' : 'Probes check failed on vicim server' }
+
+        methods_wait_time = 0
+        method_logs = []
         for method in fault_info['methods']:
             logs = self.inject_script(dns,method)
-            self.send_logs_to_db(logs,"methods_logs")
+            method_logs.append({method['name'] : logs})
+            methods_wait_time += self.get_method_wait_time(method)
+
+        sleep(methods_wait_time)
+
+        probes_result,probe_after_method_logs  = self.run_probes(self,probes,target_info)
+        if probes_result is True :
+            return {'exit_code' : '0', 'status' : 'Services self healed after injection' }
+
+        rollback_logs = []
         for rollback in fault_info['rollbacks']:
             logs = self.inject_script(dns,rollback)
-            self.send_logs_to_db(logs,"rollbacks_logs")
-            
+            rollback_logs.append({rollback['name'] : logs})
+
+        self.send_result(probe_logs, method_logs, probe_after_method_logs, rollback_logs)
+
+
+
+    def run_probes(self,probes,target_info):
+        probes_output  = {}
+        for probe in probes :
+            probes_output[probe['name']] =  self.probe_server(target_info,probe)
+        probes_result = probes_output.values()
+        if False in probes_result :
+            return False,probes_output
+
+        return True,probes_output
+
+
+    def get_method_wait_time(self,method):
+        pass
 
     def send_logs_to_db(self,logs,collection):
         pass
@@ -82,7 +114,7 @@ class InjectionSlave():
         result  = True
         return result
 
-    def send_result(self):
+    def send_result(self,probe_logs,method_logs,probe_after_method_logs,rollback_logs):
         pass
 
 

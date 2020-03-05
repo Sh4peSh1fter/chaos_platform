@@ -12,8 +12,8 @@ def get_instructions():
 def inject_fault():
     dns = request.json['dns']
     fault = request.json['fault']
-    call_slave(dns,fault)
-    return "yaay"
+    output = call_slave(dns,fault)
+    return output
 
 def call_slave(dns,fault):
     injection_slave.initiate_fault(dns, fault)
