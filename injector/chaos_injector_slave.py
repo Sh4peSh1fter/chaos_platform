@@ -61,7 +61,7 @@ class InjectionSlave():
     def run_fault(self,target_info,fault_info):
         dns = target_info['dns']
         probes = fault_info['probes']
-        probes_result,probes_logs  = self.run_probes(self,probes,target_info)
+        probes_result,probe_logs  = self.run_probes(self,probes,target_info)
 
         if probes_result is False :
             return {'exit_code' : '2', 'status' : 'Probes check failed on vicim server' }
@@ -75,8 +75,7 @@ class InjectionSlave():
 
         sleep(methods_wait_time)
 
-        probes_result,probes_logs  = self.run_probes(self,probes,target_info)
-
+        probes_result,probe_after_method_logs  = self.run_probes(self,probes,target_info)
         if probes_result is True :
             return {'exit_code' : '0', 'status' : 'Services self healed after injection' }
 
@@ -85,8 +84,7 @@ class InjectionSlave():
             logs = self.inject_script(dns,rollback)
             rollback_logs.append({rollback['name'] : logs})
 
-
-
+        self.send_result(probe_logs, method_logs, probe_after_method_logs, rollback_logs)
 
 
 
@@ -116,7 +114,7 @@ class InjectionSlave():
         result  = True
         return result
 
-    def send_result(self):
+    def send_result(self,probe_logs,method_logs,probe_after_method_logs,rollback_logs):
         pass
 
 
