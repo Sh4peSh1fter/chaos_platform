@@ -11,9 +11,13 @@ class InjectionSlave():
     def initiate_fault(self,dns,fault):
         return self.orchestrate_injection(dns,fault)
 
+
     def orchestrate_injection(self,dns,fault):
+        # Gets server and fault full information from db
         target_info , fault_info = self.get_info(dns,fault)
+
         #built_script = self.build_script(target_info,fault_info)
+        # Runs the probes,methods and rollbacks by order.
         injection_logs = self.run_fault(target_info,fault_info)
         #self.send_result(injection_logs)
 
@@ -55,7 +59,6 @@ class InjectionSlave():
 
 
     def run_fault(self,target_info,fault_info):
-        fault_parts = fault_info.keys()
         dns = target_info['dns']
         probes = fault_info['probes']
         probes_result,probes_logs  = self.run_probes(self,probes,target_info)
@@ -64,9 +67,10 @@ class InjectionSlave():
             return {'exit_code' : '2', 'status' : 'Probes check failed on vicim server' }
 
         methods_wait_time = 0
+        method_logs = []
         for method in fault_info['methods']:
             logs = self.inject_script(dns,method)
-            self.send_logs_to_db(logs,"methods_logs")
+            method_logs.append({method['name'] : logs})
             methods_wait_time += self.get_method_wait_time(method)
 
         sleep(methods_wait_time)
@@ -76,9 +80,14 @@ class InjectionSlave():
         if probes_result is True :
             return {'exit_code' : '0', 'status' : 'Services self healed after injection' }
 
+        rollback_logs = []
         for rollback in fault_info['rollbacks']:
             logs = self.inject_script(dns,rollback)
-            self.send_logs_to_db(logs,"rollbacks_logs")
+            rollback_logs.append({rollback['name'] : logs})
+
+
+
+
 
 
     def run_probes(self,probes,target_info):
