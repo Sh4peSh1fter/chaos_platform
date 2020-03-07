@@ -1,6 +1,6 @@
-1. Finish inject_script function with convention 
+1. Finish inject_script function with convention - V 
 2. Finish send_result function to send logs to db 
 3. Add exceptions for script failure 
-4. Add method_wait_time function
-5. Add build_script function
+4. Add method_wait_time function - V
+5. Add build_script function - V
 6. Go over all functions and think about improvements

@@ -100,7 +100,11 @@ class InjectionSlave():
 
 
     def get_method_wait_time(self,method):
-        pass
+        try:
+            method_wait_time = method['method_wait_time']
+        except KeyError :
+            method_wait_time = 0
+        return method_wait_time
 
     def send_logs_to_db(self,logs,collection):
         pass
