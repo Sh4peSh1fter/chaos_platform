@@ -221,6 +221,23 @@ def add_fault():
 
 
 
+@app.route('/logs', methods=['POST'])
+@app.route('/log', methods=['POST'])
+def add_fault():
+    collection = "logs"
+    json_object = request.get_json()
+    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    identifier_key = "name"
+    try:
+        identifier_value = json_object["name"]
+    except KeyError:
+        return "name is a required parameter", 400
+    default_request_values = {'logs' : [], 'date': "001215000000 ", 'successful' : False }
+
+    output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
+    return output
+
+
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
     # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
