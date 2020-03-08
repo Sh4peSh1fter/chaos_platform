@@ -223,7 +223,7 @@ def add_fault():
 
 @app.route('/logs', methods=['POST'])
 @app.route('/log', methods=['POST'])
-def add_fault():
+def add_log():
     collection = "logs"
     json_object = request.get_json()
     expected_returned_keys = ["name", 'logs' , "date", "successful" ]
