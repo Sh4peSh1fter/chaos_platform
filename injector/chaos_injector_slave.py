@@ -3,7 +3,7 @@ from time import sleep
 import subprocess
 import base64
 import os
-
+import time
 
 class InjectionSlave():
 
@@ -17,16 +17,22 @@ class InjectionSlave():
 
 
     def orchestrate_injection(self,dns,fault):
-        # Gets server and fault full information from db
-        target_info , fault_info = self.get_info(dns,fault)
-
-        # Runs the probes,methods and rollbacks by order.
-        injection_logs = self.run_fault(target_info,fault_info)
-
-        # Sends logs to db to be stored
-#        self.send_result(injection_logs)
-
-        return injection_logs
+        try :
+            # Gets server and fault full information from db
+            target_info , fault_info = self.get_info(dns,fault)
+        except:
+            return { "exit_code":"1" ,"status": "Injector failed gathering facts" }
+        try :
+            # Runs the probes,methods and rollbacks by order.
+            logs_object = self.run_fault(target_info,fault_info)
+        except :
+            return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
+        try :
+            # Sends logs to db to be stored in the "logs" collection
+            self.send_result(logs_object,"logs")
+        except :
+            return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
+        return logs_object
 
     def get_info(self,dns,fault):
         db_server_api_url = "{}/{}/{}".format(self.db_api_url,"server",dns)
@@ -45,7 +51,7 @@ class InjectionSlave():
         probes = fault_info["probes"]
         methods = fault_info["methods"]
         rollbacks = fault_info["rollbacks"]
-
+        name  = fault_info["name"]
         fault_structure = {'probes' : probes , 'methods' : methods , 'rollbacks' : rollbacks}
 
         # fault_section can be the probes/methods/rollbacks part of the fault
@@ -56,45 +62,73 @@ class InjectionSlave():
                 section_part_info = requests.get("{}/{}/{}".format(self.db_api_url,fault_section,section_part)).json()
                 fault_section_parts.append(section_part_info)
             fault_structure[fault_section] = fault_section_parts
+
+        fault_structure["name"] =  name
         return fault_structure
 
 
 
     def run_fault(self,target_info,fault_info):
-        # Gets dns and fault parts from fault_info
-        dns = target_info['dns']
-        probes = fault_info['probes']
-        methods = fault_info['methods']
-        rollbacks = fault_info['rollbacks']
+        try:
+            # Gets dns and fault parts from fault_info
+            fault_name = fault_info['name']
+            dns = target_info['dns']
+            probes = fault_info['probes']
+            methods = fault_info['methods']
+            rollbacks = fault_info['rollbacks']
+        except :
+            logs_object = {'name': "failed_fault" ,'exit_code' : '1' , 'status' : 'expirement failed because parameters in db were missing '}
+            return logs_object
 
+        try :
+            method_logs = {}
+            rollback_logs = {}
+            probe_after_method_logs = {}
 
-        probes_result,probe_logs  = self.run_probes(probes,dns)
-        if probes_result is False :
-            return {'exit_code' : '2', 'status' : 'Probes check failed on victim server' }
+            probes_result,probe_logs  = self.run_probes(probes,dns)
+            if probes_result is True :
 
-        methods_wait_time = 0
-        method_logs = []
-        for method in methods :
-            part_name_to_log = self.run_fault_part(method,dns)
-            method_wait_time = self.get_method_wait_time(method)
-            method_logs.append(part_name_to_log)
-            methods_wait_time += method_wait_time
+                probe_logs['exit_code']  =  "0"
+                probe_logs['status'] = "Probes checked on victim server successfully"
+                methods_wait_time, method_logs = self.run_methods(methods, dns)
 
-        sleep(methods_wait_time)
+                # Wait the expected recovery wait time
+                sleep(methods_wait_time)
 
-        probes_result,probe_after_method_logs  = self.run_probes(probes,dns)
-        if probes_result is True :
-            return {'exit_code' : '0', 'status' : 'Services self healed after injection' }
+                probes_result, probe_after_method_logs = self.run_probes(probes, dns)
+                # Check if server self healed after injection
+                if probes_result is True:
+                    probe_after_method_logs['exit_code'] = "0"
+                    probe_after_method_logs['status'] = "victim succsessfully self healed after injection"
+                else:
+                    probe_after_method_logs['exit_code'] = "1"
+                    probe_after_method_logs['status'] = "victim failed self healing after injection"
 
-        rollback_logs = []
-        for rollback in rollbacks:
-            part_name_to_log = self.run_fault_part(rollback,dns)
-            rollback_logs.append(part_name_to_log)
+                    # If server didnt self heal run rollbacks
+                    for rollback in rollbacks:
+                        part_name = rollback['name']
+                        part_log = self.run_fault_part(rollback, dns)
+                        rollback_logs[part_name] = part_log
 
+                    sleep(methods_wait_time)
 
-        injection_logs = [probe_logs, method_logs, probe_after_method_logs, rollback_logs]
+                    # Check if server healed after rollbacks
+                    if probes_result is True:
+                        rollbacks['exit_code'] = "0"
+                        rollbacks['status'] = "victim succsessfully  healed after rollbacks"
+                    else:
+                        rollbacks['exit_code'] = "1"
+                        rollbacks['status'] = "victim failed healing after rollbacks"
+            else :
+                probe_logs['exit_code'] = "1"
+                probe_logs['status'] = "Probes check failed on victim server"
 
-        return injection_logs
+            logs_object = {'name': fault_name ,'exit_code' : '0' , 'status' : 'expirement ran as unexpected','rollbacks' : rollback_logs , 'probes' : probe_logs , 'method_logs' : method_logs,'probe_after_method_logs' : probe_after_method_logs}
+
+        except :
+            logs_object = {'name': fault_name ,'exit_code' : '1' , 'status' : 'expirement failed because of an unexpected reason'}
+
+        return logs_object
 
 
 
@@ -108,6 +142,17 @@ class InjectionSlave():
 
         return True,probes_output
 
+    def run_methods(self,methods,dns):
+        method_logs = {}
+        methods_wait_time = 0
+        for method in methods:
+            part_name = method['name']
+            part_log = self.run_fault_part(method, dns)
+            method_wait_time = self.get_method_wait_time(method)
+            method_logs[part_name] = part_log
+            methods_wait_time += method_wait_time
+
+        return  methods_wait_time,method_logs
 
     def get_script(self,fault_part):
         script_name = fault_part['name']
@@ -155,7 +200,15 @@ class InjectionSlave():
         self.remove_script_file(script_file_path)
         return logs
 
-    def send_result(self,probe_logs,method_logs,probe_after_method_logs,rollback_logs):
-        pass
+    def get_current_time(self):
+        current_time =  time.strftime('%Y%m%d%H%M%S')
+        return current_time
 
+
+    def send_result(self,logs_object,collection = "logs"):
+        current_time = self.get_current_time()
+        logs_object['date'] = current_time
+        db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
+        response = requests.post(db_api_logs_url, json = logs_object)
+        return  response
 
