@@ -15,7 +15,6 @@ class InjectionSlave():
     def initiate_fault(self,dns,fault):
         return self.orchestrate_injection(dns,fault)
 
-
     def orchestrate_injection(self,dns,fault):
         try :
             # Gets server and fault full information from db
@@ -65,7 +64,6 @@ class InjectionSlave():
 
         fault_structure["name"] =  name
         return fault_structure
-
 
 
     def run_fault(self,target_info,fault_info):
@@ -163,8 +161,7 @@ class InjectionSlave():
 
     def create_script_file(self,script,script_name):
         injector_home_dir = "/home/injector"
-        #script_file_path = '{}/{}'.format(injector_home_dir,script_name)
-        script_file_path = r"c:\users\borat\{}".format(script_name)
+        script_file_path = '{}/{}'.format(injector_home_dir,script_name)
         with open(script_file_path,'w') as script_file :
             script_file.write(script)
         return script_file_path
@@ -211,4 +208,3 @@ class InjectionSlave():
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
         response = requests.post(db_api_logs_url, json = logs_object)
         return  response
-
