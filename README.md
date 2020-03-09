@@ -2,7 +2,7 @@
 platform for chaos engineering
 
 
-#db 
+# db 
 the DB of the chaos platform is currently mongoDB.
 the DB folder includes 2 scripts, a python script which is the REST api for the mongoDB, And a bash script which initializes the mongoDB to 
 include the basic collections and examples.
