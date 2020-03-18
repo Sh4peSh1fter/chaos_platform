@@ -1,4 +1,4 @@
-from flask import Flask,jsonify,request
+from flask import Flask,request
 import chaos_injector_slave
 
 app = Flask(__name__)
@@ -6,18 +6,18 @@ injection_slave = chaos_injector_slave.InjectionSlave()
 
 @app.route('/inject_fault',methods=['GET'])
 def get_instructions():
-    return "just do it"
+    return "send dns and fault name in json object"
 
 @app.route('/inject_fault',methods=['POST'])
 def inject_fault():
     dns = request.json['dns']
     fault = request.json['fault']
-    call_slave(dns,fault)
-    return "yaay"
+    output = call_slave(dns,fault)
+    return output
 
 def call_slave(dns,fault):
-    injection_slave.initiate_fault(dns, fault)
-
+    output = injection_slave.initiate_fault(dns, fault)
+    return  output
 if __name__ == '__main__':
     app.run(debug=True)
     app.run(host='0.0.0.0')
