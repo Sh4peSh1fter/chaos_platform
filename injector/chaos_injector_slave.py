@@ -154,7 +154,7 @@ class InjectionSlave():
 
     def get_script(self,fault_part):
         script_name = fault_part['name']
-        script_in_base64 = fault_part['content']
+        script_in_base64 =  fault_part['content']
         binary_script_in_ascii = base64.b64decode(script_in_base64)
         script_in_ascii = binary_script_in_ascii.decode('ascii')
         return script_in_ascii,script_name
