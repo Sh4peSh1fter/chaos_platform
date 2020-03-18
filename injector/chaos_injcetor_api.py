@@ -6,7 +6,7 @@ injection_slave = chaos_injector_slave.InjectionSlave()
 
 @app.route('/inject_fault',methods=['GET'])
 def get_instructions():
-    return "just do it"
+    return "send dns and fault name in json object"
 
 @app.route('/inject_fault',methods=['POST'])
 def inject_fault():

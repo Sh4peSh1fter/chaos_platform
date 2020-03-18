@@ -15,6 +15,10 @@ mongo --eval 'db.createCollection("rollbacks", { validator : { $jsonSchema : { b
 
 mongo --eval 'db.createCollection("faults", { validator : { $jsonSchema : { bsonType : "object", required : ["name","active","probes","methods","rollbacks","targets"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "probes" : { bsonType : "array", description : "Must be an array and is required"  }, "methods": { bsonType : "array", description : "Must be an array and is required "  }, "targets": { bsonType : "array", description : "Must be an array and is required "  }, "rollbacks" : { bsonType: "array", description: "must be an array and is required" }, last_updated: { bsonType: "string", description: "must be a string and is required" },  active : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
 
+
+
+mongo --eval 'db.createCollection("logs", { validator : { $jsonSchema : { bsonType : "object", required : ["name","date","logs","successful"], properties : {  name : { bsonType : "string", description : "Must be a string and is required"  }, "date" : { bsonType : "string", description : "Must be a string and is required"  }, logs : { bsonType : "array", description: "must be array and is required" }, successful : { bsonType : "bool", description: "must be boolean and is required" } } } }, validationAction : "error" } )' chaos
+
 mongo --eval 'db.servers.insert({dns : "test_server2", groups : ["linux_servers"] , active : true, last_fault : "0012150000"})' chaos
 
 mongo --eval 'db.servers.insert({dns : "test_server1", groups : ["linux_servers","web_servers"], active : false})' chaos
