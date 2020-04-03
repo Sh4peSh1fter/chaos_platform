@@ -1,6 +1,5 @@
 import os
 
-
 def get_random_picker_url():
     random_picker_url = os.environ.get("PICKER_API", "http://127.0.0.1:5001")
     return random_picker_url

@@ -1,5 +1,5 @@
 import click
-import env_config
+import env_config as config
 
 @click.group('cli')
 def cli():
@@ -16,7 +16,7 @@ def cli_config():
 @cli_config.command('set')
 def config_set(master_url):
     if master_url :
-        print(env_config.set_master_url(master_url))
+        print(config.set_master_url(master_url))
 
 
 @click.option('--master-url',default = False ,
@@ -33,33 +33,33 @@ def config_set(master_url):
 def config_get(master_url,db_url,random_picker_url,injector_url,all):
 
     if master_url :
-        master_url = env_config.get_master_url()
+        master_url = config.get_master_url()
         print("\n master-url = {}".format(master_url))
 
     if db_url :
-        db_url = env_config.get_db_url()
+        db_url = config.get_db_url()
         print("\n db-url = {}".format(db_url))
 
 
     if random_picker_url :
-        random_picker_url = env_config.get_random_picker_url()
+        random_picker_url = config.get_random_picker_url()
         print("\n random-picker-url = {}".format(random_picker_url))
 
 
     if injector_url :
-        injector_url = env_config.get_injector_url()
+        injector_url = config.get_injector_url()
         print("\n injector-url = {}".format(injector_url))
 
 
     if all :
-        master_url = env_config.get_master_url()
+        master_url = config.get_master_url()
         print("\n master-url = {}".format(master_url))
 
-        db_url = env_config.get_db_url()
+        db_url = config.get_db_url()
         print("\n db-url = {}".format(db_url))
 
-        random_picker_url = env_config.get_random_picker_url()
+        random_picker_url = config.get_random_picker_url()
         print("\n random-picker-url = {}".format(random_picker_url))
 
-        injector_url = env_config.get_injector_url()
+        injector_url = config.get_injector_url()
         print("\n injector-url = {}".format(injector_url))
