@@ -1,6 +1,6 @@
 import click
 import requests
-import env_config as config
+import file_config as config
 
 @click.group('db')
 def db():
