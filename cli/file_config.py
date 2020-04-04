@@ -30,8 +30,7 @@ def get_db_url():
 
 def set_master_url(new_url):
     try:
-        variable_to_value_dict = {'master-url' : new_url}
-        add_data_to_json_file(config_file, variable_to_value_dict)
+        add_data_to_json_file(config_file, 'master-url' , new_url)
         return True
     except :
         return False
@@ -39,16 +38,14 @@ def set_master_url(new_url):
 
 def set_db_url(new_url):
     try:
-        variable_to_value_dict = {'db-url' : new_url}
-        add_data_to_json_file(config_file, variable_to_value_dict)
+        add_data_to_json_file(config_file, 'db-url' , new_url)
         return True
     except:
         return False
 
 def set_injector_url(new_url):
     try:
-        variable_to_value_dict = {'injector-url' : new_url}
-        add_data_to_json_file(config_file, variable_to_value_dict)
+        add_data_to_json_file(config_file, 'injector-url' , new_url)
         return True
     except :
         return False
@@ -56,8 +53,7 @@ def set_injector_url(new_url):
 
 def set_random_picker_url(new_url):
     try:
-        variable_to_value_dict = {'picker-url' : new_url}
-        add_data_to_json_file(config_file, variable_to_value_dict)
+        add_data_to_json_file(config_file,'picker-url' , new_url)
         return True
     except :
         return False
