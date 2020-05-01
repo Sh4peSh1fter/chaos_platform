@@ -1,6 +1,7 @@
 from os.path import expanduser,dirname
 from pathlib import Path
 import json
+import os
 
 home_dir = expanduser("~")
 chaos_home_dir = "{}/.chaos".format(home_dir)
@@ -59,7 +60,21 @@ def set_random_picker_url(new_url):
         return False
 
 
+
+def validate_home_dir(home_dir_addrs):
+    home_dir_exists = os.path.isdir(home_dir_addrs)
+    if home_dir_exists :
+        return True
+    else:
+        try :
+            os.makedirs(home_dir_addrs)
+            return True
+        except:
+            return False
+
+
 def get_data_from_json_file(file_path, varible_name):
+    validate_home_dir(chaos_home_dir)
     try :
         with open(file_path,'r') as json_file :
             file_data  = json.load(json_file)
@@ -70,6 +85,7 @@ def get_data_from_json_file(file_path, varible_name):
 
 
 def add_data_to_json_file(file_path, varible_name,varible_value):
+    validate_home_dir(chaos_home_dir)
     with open(file_path,'r+') as json_file :
         file_data  = json.load(json_file)
         file_data[varible_name] = varible_value
