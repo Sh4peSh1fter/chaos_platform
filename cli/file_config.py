@@ -30,11 +30,11 @@ def get_db_url():
     return db_url
 
 def set_master_url(new_url):
-    try:
+    #try:
         add_data_to_json_file(config_file, 'master-url' , new_url)
-        return True
-    except :
-        return False
+     #   return True
+    #except :
+    #    return False
 
 
 def set_db_url(new_url):
