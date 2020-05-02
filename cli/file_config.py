@@ -87,14 +87,16 @@ def get_data_from_json_file(file_path, varible_name):
 def add_data_to_json_file(file_path, varible_name,varible_value):
     validate_home_dir(chaos_home_dir)
     with open(file_path,'w+') as json_file :
-        #file_data  = json.load(json_file)
-        #file_data[varible_name] = varible_value
+        try :
+            file_data  = json.load(json_file)
+            file_data[varible_name] = varible_value
+        except :
+            file_data = {varible_name : varible_value}
 
         # Rewind to the start of the file
-        #json_file.seek(0)
-        #json.dump(file_data, json_file)
-        ## Truncate in case new data is smaller than old data
-        #file_data.truncate()
-        pass
+        json_file.seek(0)
+        json.dump(file_data, json_file)
+        # Truncate in case new data is smaller than old data
+        file_data.truncate()
 
 
