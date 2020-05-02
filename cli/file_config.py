@@ -97,6 +97,6 @@ def add_data_to_json_file(file_path, varible_name,varible_value):
         json_file.seek(0)
         json.dump(file_data, json_file)
         # Truncate in case new data is smaller than old data
-        file_data.truncate()
+        json_file.truncate()
 
 
