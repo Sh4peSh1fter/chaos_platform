@@ -6,7 +6,6 @@ import os
 home_dir = expanduser("~")
 chaos_home_dir = "{}/.chaos".format(home_dir)
 config_file = "{}/config.json".format(chaos_home_dir)
-print(config_file)
 
 Path(home_dir).mkdir(parents=True, exist_ok=True)
 
