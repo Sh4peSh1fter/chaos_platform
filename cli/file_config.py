@@ -73,7 +73,7 @@ def validate_home_dir(home_dir_addrs):
             return False
 
 
-def get_config_json(file_path):
+def get_config_json(file_path = config_file ):
     try :
         with open(file_path,'r') as config_file :
             json_config = json.load(config_file)
