@@ -22,7 +22,7 @@ def get_injector_url():
     return injector_url
 
 def get_master_url():
-    master_url = get_object_from_json_file(config_file, "master-url")
+    master_url,result = get_object_from_json_file(config_file, "master-url")
     return master_url
 
 def get_db_url():
