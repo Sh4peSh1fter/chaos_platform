@@ -52,14 +52,6 @@ def config_get(master_url,db_url,random_picker_url,injector_url,all):
 
 
     if all :
-        master_url = config.get_master_url()
-        print("\n master-url = {}".format(master_url))
-
-        db_url = config.get_db_url()
-        print("\n db-url = {}".format(db_url))
-
-        random_picker_url = config.get_random_picker_url()
-        print("\n random-picker-url = {}".format(random_picker_url))
-
-        injector_url = config.get_injector_url()
-        print("\n injector-url = {}".format(injector_url))
+        config_json = config.get_config_json()
+        for varible in config_json.keys():
+            print("\n {} = {}".format(varible,config_json[varible]))

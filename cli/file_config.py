@@ -13,20 +13,20 @@ Path(home_dir).mkdir(parents=True, exist_ok=True)
 
 
 def get_random_picker_url():
-    random_picker_url = get_data_from_json_file(config_file, "picker-url")
+    random_picker_url = get_object_from_json_file(config_file, "picker-url")
     return random_picker_url
 
 def get_injector_url():
-    injector_url = get_data_from_json_file(config_file, "injector-url")
+    injector_url = get_object_from_json_file(config_file, "injector-url")
 
     return injector_url
 
 def get_master_url():
-    master_url = get_data_from_json_file(config_file, "master-url")
+    master_url = get_object_from_json_file(config_file, "master-url")
     return master_url
 
 def get_db_url():
-    db_url = get_data_from_json_file(config_file, "db-url")
+    db_url = get_object_from_json_file(config_file, "db-url")
     return db_url
 
 def set_master_url(new_url):
@@ -81,8 +81,9 @@ def get_config_json(file_path):
     except :
         return {}
 
-def get_data_from_json_file(file_path, varible_name):
+def get_object_from_json_file(file_path, varible_name):
     validate_home_dir(chaos_home_dir)
+
     try :
         with open(file_path,'r') as json_file :
             file_data  = json.load(json_file)
@@ -96,12 +97,7 @@ def add_data_to_json_file(file_path, varible_name,varible_value):
     validate_home_dir(chaos_home_dir)
     json_config = get_config_json(file_path)
     with open(file_path,'w+') as json_file :
-
-        try :
-            json_config[varible_name] = varible_value
-        except :
-            json_config = {varible_name : varible_value}
-
+        json_config[varible_name] = varible_value
         # Rewind to the start of the file
         json_file.seek(0)
         json.dump(json_config, json_file)
