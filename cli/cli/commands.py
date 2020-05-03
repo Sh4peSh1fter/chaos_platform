@@ -10,14 +10,16 @@ def cli():
 def cli_config():
     pass
 
-
+@click.option('--db-url',default = None ,
+              help = "Time in seconds between each fault",type = str ,required = False)
 @click.option('--master-url',default = None ,
               help = "Time in seconds between each fault",type = str ,required = False)
 @cli_config.command('set')
-def config_set(master_url):
+def config_set(master_url,db_url):
     if master_url :
         print(config.set_master_url(master_url))
-
+    if db_url :
+        print(config.set_db_url(db_url))
 
 @click.option('--master-url',default = False ,
               help = "Get the url of the master", is_flag=True ,required = False)
