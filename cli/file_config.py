@@ -73,6 +73,14 @@ def validate_home_dir(home_dir_addrs):
             return False
 
 
+def get_config_json(file_path):
+    try :
+        with open(file_path,'r') as config_file :
+            json_config = json.load(config_file)
+            return json_config
+    except :
+        return {}
+
 def get_data_from_json_file(file_path, varible_name):
     validate_home_dir(chaos_home_dir)
     try :
@@ -86,16 +94,17 @@ def get_data_from_json_file(file_path, varible_name):
 
 def add_data_to_json_file(file_path, varible_name,varible_value):
     validate_home_dir(chaos_home_dir)
+    json_config = get_config_json(file_path)
     with open(file_path,'w+') as json_file :
+
         try :
-            file_data  = json.load(json_file)
-            file_data[varible_name] = varible_value
+            json_config[varible_name] = varible_value
         except :
-            file_data = {varible_name : varible_value}
+            json_config = {varible_name : varible_value}
 
         # Rewind to the start of the file
         json_file.seek(0)
-        json.dump(file_data, json_file)
+        json.dump(json_config, json_file)
         # Truncate in case new data is smaller than old data
         json_file.truncate()
 
