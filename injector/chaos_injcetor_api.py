@@ -13,6 +13,7 @@ def inject_fault():
     dns = request.json['dns']
     fault = request.json['fault']
     output = call_slave(dns,fault)
+    print(output)
     return output
 
 def call_slave(dns,fault):

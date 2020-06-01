@@ -30,7 +30,8 @@ class InjectionSlave():
 
         try :
             # Sends logs to db to be stored in the "logs" collection
-            self.send_result(logs_object,"logs")
+            db_response = self.send_result(logs_object,"logs")
+            return db_response
         except :
             return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
 
@@ -206,6 +207,7 @@ class InjectionSlave():
         logs_object['date'] = current_time
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
         response = requests.post(db_api_logs_url, json = logs_object)
+        print(logs_object)
         return  response
 
 
