@@ -85,7 +85,7 @@ def add_group():
 @app.route('/method', methods=['GET'])
 def get_all_methods():
     collection = "methods"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -95,7 +95,7 @@ def get_one_method(name):
     collection = "methods"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -118,7 +118,7 @@ def add_method():
 @app.route('/probe', methods=['GET'])
 def get_all_probes():
     collection = "probes"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -128,7 +128,7 @@ def get_one_probe(name):
     collection = "probes"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -153,7 +153,7 @@ def add_probe():
 @app.route('/rollback', methods=['GET'])
 def get_all_rollbacks():
     collection = "rollbacks"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -163,7 +163,7 @@ def get_one_rollback(name):
     collection = "rollbacks"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -237,6 +237,23 @@ def add_log():
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
+@app.route('/logs', methods=['GET'])
+@app.route('/log', methods=['GET'])
+def get_all_logs():
+    collection = "logs"
+    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    output = get_all_objects(collection, expected_returned_keys)
+    return output
+
+@app.route('/logs/<name>' ,methods=['GET'])
+@app.route('/log/<name>' ,methods=['GET'])
+def get_one_log(name):
+    collection = "logs"
+    identifier_key = "name"
+    identifier_value = name
+    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
 
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
     # Easyiest way to use a string as a property of an object
