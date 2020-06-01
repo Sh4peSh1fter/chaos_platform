@@ -195,20 +195,26 @@ class InjectionSlave():
 
         for method in methods:
             part_name = method['name']
-            part_log = self.run_fault_part(method, dns)
-            method_wait_time = self.get_method_wait_time(method)
+            part_log = self._run_fault_part(method, dns)
+            method_wait_time = self._get_method_wait_time(method)
             method_logs[part_name] = part_log
             methods_wait_time += method_wait_time
 
         return  methods_wait_time,method_logs
 
     def send_result(self,logs_object,collection = "logs"):
-        current_time = self.get_current_time()
+        current_time = self._get_current_time()
         logs_object['date'] = current_time
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
         response = requests.post(db_api_logs_url, json = logs_object)
         print(logs_object)
         return  response
 
+    def _get_current_time(self):
+        current_time =  time.strftime('%Y%m%d%H%M%S')
+        return current_time
 
 
+
+    def _get_method_wait_time(self,method):
+        return 0
