@@ -285,20 +285,24 @@ def get_all_objects(collection,expected_returned_keys):
 
 
 def add_object_to_db(collection,json_object,expected_returned_keys,identifier_key,identifier_value,default_request_values):
+
     # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
+
     # Last fault is in format of DAY:MONTH:YEAR:HOUR:MINUTE:SECOND
     json_object = parse_json_object(json_object, default_request_values)
+
     try:
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
-            new_object_id = objects.insert(json_object)
+            new_object_id = objects.insert(json_object, check_keys=False)
             query = objects.find_one({'_id': new_object_id})
-    except (errors.WriteError, TypeError) as e:
-        raise e
+    except (errors.WriteError, TypeError) as E:
+        print(E)
         return jsonify({'result': 'the object failed the validation schema'}), 400
     output = {}
+
     for expected_key in expected_returned_keys:
       output[expected_key] = query[expected_key]
 
