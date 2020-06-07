@@ -1,6 +1,7 @@
 import requests
 from time import sleep
 import subprocess
+import base64
 import os
 import time
 
@@ -11,97 +12,88 @@ class InjectionSlave():
         self.db_api_port = db_api_port
         self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
 
-
     def initiate_fault(self,dns,fault):
-        return self._orchestrate_injection(dns,fault)
+        return self.orchestrate_injection(dns,fault)
 
-    def _orchestrate_injection(self,dns,fault_name):
+    def orchestrate_injection(self,dns,fault):
         try :
-            # Gets fault full information from db
-            fault_info = self._get_fault_info(fault_name)
-        except Exception as E :
-            print("Injector failed gathering facts" + E)
+            # Gets server and fault full information from db
+            target_info , fault_info = self.get_info(dns,fault)
+        except:
             return { "exit_code":"1" ,"status": "Injector failed gathering facts" }
         try :
             # Runs the probes,methods and rollbacks by order.
-            logs_object = self._run_fault(dns, fault_info)
+            logs_object = self.run_fault(target_info,fault_info)
         except :
-            print( "Injector failed injecting fault" )
             return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
         try :
             # Sends logs to db to be stored in the "logs" collection
-            db_response = self._send_result(logs_object,"logs")
-            print(db_response)
-            return db_response
-        except Exception as E:
-            print("Injector failed sending logs to db" + E )
+            self.send_result(logs_object,"logs")
+        except :
             return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
+        return logs_object
+
+    def get_info(self,dns,fault):
+        db_server_api_url = "{}/{}/{}".format(self.db_api_url,"server",dns)
+        db_fault_api_url = "{}/{}/{}".format(self.db_api_url, "fault", fault)
+
+        fault_info = self.get_fault_info(db_fault_api_url)
+
+        # Getting server and fault info and turning them into json
+        server_info = requests.get(db_server_api_url).json()
+
+        return server_info, fault_info
 
 
-
-    def _get_fault_info(self,fault_name):
-        # Get json object for db rest api
-        db_fault_api_url = "{}/{}/{}".format(self.db_api_url, "fault", fault_name)
+    def get_fault_info(self,db_fault_api_url):
         fault_info = requests.get(db_fault_api_url).json()
-        # Get the names of the parts of the fault
         probes = fault_info["probes"]
         methods = fault_info["methods"]
         rollbacks = fault_info["rollbacks"]
         name  = fault_info["name"]
-
         fault_structure = {'probes' : probes , 'methods' : methods , 'rollbacks' : rollbacks}
 
         # fault_section can be the probes/methods/rollbacks part of the fault
         for fault_section in fault_structure.keys():
             fault_section_parts = []
-
             # section_part refers to a specific part of the probes/methods/rollbacks
             for section_part in fault_structure[fault_section]:
                 section_part_info = requests.get("{}/{}/{}".format(self.db_api_url,fault_section,section_part)).json()
                 fault_section_parts.append(section_part_info)
-
             fault_structure[fault_section] = fault_section_parts
 
         fault_structure["name"] =  name
         return fault_structure
 
 
-    def _run_fault(self,dns,fault_info):
+    def run_fault(self,target_info,fault_info):
         try:
-
-            # Gets fault parts from fault_info
+            # Gets dns and fault parts from fault_info
             fault_name = fault_info['name']
+            dns = target_info['dns']
             probes = fault_info['probes']
             methods = fault_info['methods']
             rollbacks = fault_info['rollbacks']
-
-        except Exception as E :
-            logs_object = {'name': "failed_fault" ,'exit_code' : '1' ,
-                           'status' : 'expirement failed because parameters in db were missing ', 'error' : E}
+        except :
+            logs_object = {'name': "failed_fault" ,'exit_code' : '1' , 'status' : 'expirement failed because parameters in db were missing '}
             return logs_object
 
         try :
-
             method_logs = {}
             rollback_logs = {}
             probe_after_method_logs = {}
 
-            # Run probes and get logs and final probes result
-            probes_result,probe_logs  = self._run_probes(probes,dns)
-
-            # If probes all passed continue
+            probes_result,probe_logs  = self.run_probes(probes,dns)
             if probes_result is True :
 
                 probe_logs['exit_code']  =  "0"
                 probe_logs['status'] = "Probes checked on victim server successfully"
-
-                # Run methods and  get logs and how much time to wait until checking self recovery
-                methods_wait_time, method_logs = self._run_methods(methods, dns)
+                methods_wait_time, method_logs = self.run_methods(methods, dns)
 
                 # Wait the expected recovery wait time
                 sleep(methods_wait_time)
 
-                probes_result, probe_after_method_logs = self._run_probes(probes, dns)
+                probes_result, probe_after_method_logs = self.run_probes(probes, dns)
                 # Check if server self healed after injection
                 if probes_result is True:
                     probe_after_method_logs['exit_code'] = "0"
@@ -113,11 +105,10 @@ class InjectionSlave():
                     # If server didnt self heal run rollbacks
                     for rollback in rollbacks:
                         part_name = rollback['name']
-                        part_log = self._run_fault_part(rollback, dns)
+                        part_log = self.run_fault_part(rollback, dns)
                         rollback_logs[part_name] = part_log
 
                     sleep(methods_wait_time)
-                    probes_result, probe_after_method_logs = self._run_probes(probes, dns)
 
                     # Check if server healed after rollbacks
                     if probes_result is True:
@@ -130,109 +121,93 @@ class InjectionSlave():
                 probe_logs['exit_code'] = "1"
                 probe_logs['status'] = "Probes check failed on victim server"
 
-            logs_object = {'name': fault_name ,'exit_code' : '0' ,
-                           'status' : 'expirement ran as unexpected','rollbacks' : rollback_logs ,
-                           'probes' : probe_logs , 'method_logs' : method_logs,
-                           'probe_after_method_logs' : probe_after_method_logs}
+            logs_object = {'name': fault_name ,'exit_code' : '0' , 'status' : 'expirement ran as unexpected','rollbacks' : rollback_logs , 'probes' : probe_logs , 'method_logs' : method_logs,'probe_after_method_logs' : probe_after_method_logs}
 
-            if logs_object["probe_after_method_logs"]["exit_code"] == "0" :
-                logs_object["successful"] = True
-            else:
-                logs_object["successful"] = False
-
-        except Exception as E:
-            logs_object = {'name': fault_name ,'exit_code' : '1' ,
-                           'status' : 'expirement failed because of an unexpected reason', 'error' : E}
+        except :
+            logs_object = {'name': fault_name ,'exit_code' : '1' , 'status' : 'expirement failed because of an unexpected reason'}
 
         return logs_object
 
 
-    def _get_script(self,fault_part):
-        file_share_url = fault_part['path']
-        script_name = fault_part['name']
-        script = requests.get(file_share_url).content.decode('ascii')
-        return script,script_name
 
-    def _create_script_file(self,script,script_name):
-        injector_home_dir = "/root"
-        script_file_path = '{}/{}'.format(injector_home_dir,script_name)
-        with open(script_file_path,'w') as script_file :
-            script_file.write(script)
-        return script_file_path
-
-
-    def _inject_script(self,dns,script_path):
-        # Run script
-        proc = subprocess.Popen("python {} -dns {}".format(script_path,dns), stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, shell=True)
-        # get output from proc turn it from binary to ascii and then remove /n if there is one
-        output = proc.communicate()[0].decode('ascii').rstrip()
-        return output
-
-
-    def _remove_script_file(self,script_file_path):
-        os.remove(script_file_path)
-
-    def _run_fault_part(self,fault_part,dns):
-        script, script_name = self._get_script(fault_part)
-        script_file_path = self._create_script_file(script, script_name)
-        logs = self._inject_script(dns, script_file_path)
-        self._remove_script_file(script_file_path)
-        return logs
-
-
-    def _str2bool(self,output):
-        return output.lower() in ("yes", "true", "t", "1")
-
-    def _probe_server(self,probe,dns):
-        output = self._run_fault_part(probe,dns)
-        result  = self._str2bool(output)
-        return result
-
-    def _run_probes(self,probes,dns):
+    def run_probes(self,probes,dns):
         probes_output  = {}
         for probe in probes :
-            probes_output[probe['name']] =  self._probe_server(probe,dns)
+            probes_output[probe['name']] =  self.probe_server(probe,dns)
         probes_result = probes_output.values()
-
         if False in probes_result :
             return False,probes_output
 
         return True,probes_output
 
-
-
-    def _get_method_wait_time(self,method):
-        return 0
-
-    def _get_current_time(self):
-        current_time =  time.strftime('%Y%m%d%H%M%S')
-        return current_time
-
-    def _run_methods(self,methods,dns):
+    def run_methods(self,methods,dns):
         method_logs = {}
         methods_wait_time = 0
-
         for method in methods:
             part_name = method['name']
-            part_log = self._run_fault_part(method, dns)
-            method_wait_time = self._get_method_wait_time(method)
+            part_log = self.run_fault_part(method, dns)
+            method_wait_time = self.get_method_wait_time(method)
             method_logs[part_name] = part_log
             methods_wait_time += method_wait_time
 
         return  methods_wait_time,method_logs
 
+    def get_script(self,fault_part):
+        script_name = fault_part['name']
+        script_in_base64 =  fault_part['content']
+        binary_script_in_ascii = base64.b64decode(script_in_base64)
+        script_in_ascii = binary_script_in_ascii.decode('ascii')
+        return script_in_ascii,script_name
 
-    def _send_result(self,logs_object,collection = "logs"):
+    def create_script_file(self,script,script_name):
+        injector_home_dir = "/home/injector"
+        script_file_path = '{}/{}'.format(injector_home_dir,script_name)
+        with open(script_file_path,'w') as script_file :
+            script_file.write(script)
+        return script_file_path
 
-        current_time = self._get_current_time()
+    def remove_script_file(self,script_file_path):
+        os.remove(script_file_path)
+
+    def get_method_wait_time(self,method):
+        return 0
+
+    def send_logs_to_db(self,logs,collection):
+        pass
+
+
+    def inject_script(self,dns,script_path):
+        # Run script
+        proc = subprocess.Popen("python {} -dns {}".format(script_path,dns), stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, shell=True)
+        # get output from proc turn it from binary to ascii and then remove /n if there is one
+        output = proc.communicate()[0].decode('ascii').rstrip()
+
+        return output
+
+    def probe_server(self,probe,dns):
+        output = self.run_fault_part(probe,dns)
+        result  = self.str2bool(output)
+        return result
+
+    def str2bool(self,output):
+        return output.lower() in ("yes", "true", "t", "1")
+
+    def run_fault_part(self,fault_part,dns):
+        script, script_name = self.get_script(fault_part)
+        script_file_path = self.create_script_file(script, script_name)
+        logs = self.inject_script(dns, script_file_path)
+        self.remove_script_file(script_file_path)
+        return logs
+
+    def get_current_time(self):
+        current_time =  time.strftime('%Y%m%d%H%M%S')
+        return current_time
+
+
+    def send_result(self,logs_object,collection = "logs"):
+        current_time = self.get_current_time()
         logs_object['date'] = current_time
-
-        logs_object['name'] = "{}-{}".format(logs_object['name'],logs_object['date'])
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
-        print(logs_object)
         response = requests.post(db_api_logs_url, json = logs_object)
         return  response
-
-
-
