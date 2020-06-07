@@ -20,21 +20,17 @@ class InjectionSlave():
             # Gets fault full information from db
             fault_info = self._get_fault_info(fault_name)
         except Exception as E :
-            print("Injector failed gathering facts" + E)
             return { "exit_code":"1" ,"status": "Injector failed gathering facts" }
         try :
             # Runs the probes,methods and rollbacks by order.
             logs_object = self._run_fault(dns, fault_info)
         except :
-            print( "Injector failed injecting fault" )
             return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
         try :
             # Sends logs to db to be stored in the "logs" collection
             db_response = self._send_result(logs_object,"logs")
-            print(db_response)
             return db_response
         except Exception as E:
-            print("Injector failed sending logs to db" + E )
             return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
 
 
@@ -131,7 +127,7 @@ class InjectionSlave():
                 probe_logs['status'] = "Probes check failed on victim server"
 
             logs_object = {'name': fault_name ,'exit_code' : '0' ,
-                           'status' : 'expirement ran as unexpected','rollbacks' : rollback_logs ,
+                           'status' : 'expirement ran as expected','rollbacks' : rollback_logs ,
                            'probes' : probe_logs , 'method_logs' : method_logs,
                            'probe_after_method_logs' : probe_after_method_logs}
 
@@ -223,16 +219,24 @@ class InjectionSlave():
         return  methods_wait_time,method_logs
 
 
+
+
     def _send_result(self,logs_object,collection = "logs"):
-
+        # Get current time to timestamp the object
         current_time = self._get_current_time()
-        logs_object['date'] = current_time
 
-        logs_object['name'] = "{}-{}".format(logs_object['name'],logs_object['date'])
+
+        # Creating object we will send to the db
+        db_log_object = {}
+        db_log_object['date'] = current_time
+        db_log_object['name'] = "{}-{}".format(logs_object['name'],current_time)
+        db_log_object['logs'] = logs_object
+        db_log_object['successful'] = logs_object['successful']
+
+        # Send POST request to db api in the logs collection
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
-        print(logs_object)
-        response = requests.post(db_api_logs_url, json = logs_object)
-        return  response
+        response = requests.post(db_api_logs_url, json = db_log_object)
 
+        return  response.content.decode('ascii')
 
 
