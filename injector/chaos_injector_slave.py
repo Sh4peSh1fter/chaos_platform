@@ -6,10 +6,8 @@ import time
 
 class InjectionSlave():
 
-    def __init__(self,db_ip = "52.255.160.180",db_api_port = "5001" ):
-        self.db_ip = db_ip
-        self.db_api_port = db_api_port
-        self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
+    def __init__(self,db_api_url = "http://chaos.db.openshift:5001"):
+        self.db_api_url = db_api_url
 
 
     def initiate_fault(self,dns,fault):
