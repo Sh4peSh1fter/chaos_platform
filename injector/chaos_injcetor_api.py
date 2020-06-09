@@ -1,8 +1,14 @@
 from flask import Flask,request
 import chaos_injector_slave
+import os
+
+injector_url = os.environ.get("INJECTOR_API", "http://chaos.injector.openshift:5002")
+db_url = os.environ.get("DB_API", "http://chaos.db.openshift:5001")
+server_port = int(os.environ.get("SERVER_PORT", 5001))
+
 
 app = Flask(__name__)
-injection_slave = chaos_injector_slave.InjectionSlave()
+injection_slave = chaos_injector_slave.InjectionSlave(db_url)
 
 @app.route('/inject_fault',methods=['GET'])
 def get_instructions():

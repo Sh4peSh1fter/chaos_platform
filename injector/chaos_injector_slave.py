@@ -6,10 +6,8 @@ import time
 
 class InjectionSlave():
 
-    def __init__(self,db_ip = "52.255.160.180",db_api_port = "5001" ):
-        self.db_ip = db_ip
-        self.db_api_port = db_api_port
-        self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
+    def __init__(self,db_api_url = "http://chaos.db.openshift:5001"):
+        self.db_api_url = db_api_url
 
 
     def initiate_fault(self,dns,fault):
@@ -18,31 +16,27 @@ class InjectionSlave():
     def _orchestrate_injection(self,dns,fault_name):
         try :
             # Gets fault full information from db
-            fault_info = self._get_fault_info(dns, fault_name)
-        except:
+            fault_info = self._get_fault_info(fault_name)
+        except Exception as E :
             return { "exit_code":"1" ,"status": "Injector failed gathering facts" }
-
         try :
             # Runs the probes,methods and rollbacks by order.
             logs_object = self._run_fault(dns, fault_info)
         except :
             return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
-
         try :
             # Sends logs to db to be stored in the "logs" collection
-            db_response = self.send_result(logs_object,"logs")
+            db_response = self._send_result(logs_object,"logs")
             return db_response
-        except :
+        except Exception as E:
             return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
 
 
 
     def _get_fault_info(self,fault_name):
-
         # Get json object for db rest api
         db_fault_api_url = "{}/{}/{}".format(self.db_api_url, "fault", fault_name)
         fault_info = requests.get(db_fault_api_url).json()
-
         # Get the names of the parts of the fault
         probes = fault_info["probes"]
         methods = fault_info["methods"]
@@ -76,7 +70,8 @@ class InjectionSlave():
             rollbacks = fault_info['rollbacks']
 
         except Exception as E :
-            logs_object = {'name': "failed_fault" ,'exit_code' : '1' , 'status' : 'expirement failed because parameters in db were missing '}
+            logs_object = {'name': "failed_fault" ,'exit_code' : '1' ,
+                           'status' : 'expirement failed because parameters in db were missing ', 'error' : E}
             return logs_object
 
         try :
@@ -130,23 +125,30 @@ class InjectionSlave():
                 probe_logs['status'] = "Probes check failed on victim server"
 
             logs_object = {'name': fault_name ,'exit_code' : '0' ,
-                           'status' : 'expirement ran as unexpected','rollbacks' : rollback_logs ,
+                           'status' : 'expirement ran as expected','rollbacks' : rollback_logs ,
                            'probes' : probe_logs , 'method_logs' : method_logs,
                            'probe_after_method_logs' : probe_after_method_logs}
 
-        except :
+            if logs_object["probe_after_method_logs"]["exit_code"] == "0" :
+                logs_object["successful"] = True
+            else:
+                logs_object["successful"] = False
+
+        except Exception as E:
             logs_object = {'name': fault_name ,'exit_code' : '1' ,
-                           'status' : 'expirement failed because of an unexpected reason'}
+                           'status' : 'expirement failed because of an unexpected reason', 'error' : E}
+
         return logs_object
 
 
-    def _get_script(self,fault_part,file_share_url):
+    def _get_script(self,fault_part):
+        file_share_url = fault_part['path']
         script_name = fault_part['name']
         script = requests.get(file_share_url).content.decode('ascii')
         return script,script_name
 
     def _create_script_file(self,script,script_name):
-        injector_home_dir = "/home/root"
+        injector_home_dir = "/root"
         script_file_path = '{}/{}'.format(injector_home_dir,script_name)
         with open(script_file_path,'w') as script_file :
             script_file.write(script)
@@ -159,7 +161,6 @@ class InjectionSlave():
                                 stderr=subprocess.STDOUT, shell=True)
         # get output from proc turn it from binary to ascii and then remove /n if there is one
         output = proc.communicate()[0].decode('ascii').rstrip()
-
         return output
 
 
@@ -173,9 +174,13 @@ class InjectionSlave():
         self._remove_script_file(script_file_path)
         return logs
 
+
+    def _str2bool(self,output):
+        return output.lower() in ("yes", "true", "t", "1")
+
     def _probe_server(self,probe,dns):
-        output = self.run_fault_part(probe,dns)
-        result  = self.str2bool(output)
+        output = self._run_fault_part(probe,dns)
+        result  = self._str2bool(output)
         return result
 
     def _run_probes(self,probes,dns):
@@ -188,6 +193,15 @@ class InjectionSlave():
             return False,probes_output
 
         return True,probes_output
+
+
+
+    def _get_method_wait_time(self,method):
+        return 0
+
+    def _get_current_time(self):
+        current_time =  time.strftime('%Y%m%d%H%M%S')
+        return current_time
 
     def _run_methods(self,methods,dns):
         method_logs = {}
@@ -202,19 +216,25 @@ class InjectionSlave():
 
         return  methods_wait_time,method_logs
 
-    def send_result(self,logs_object,collection = "logs"):
+
+
+
+    def _send_result(self,logs_object,collection = "logs"):
+        # Get current time to timestamp the object
         current_time = self._get_current_time()
-        logs_object['date'] = current_time
+
+
+        # Creating object we will send to the db
+        db_log_object = {}
+        db_log_object['date'] = current_time
+        db_log_object['name'] = "{}-{}".format(logs_object['name'],current_time)
+        db_log_object['logs'] = logs_object
+        db_log_object['successful'] = logs_object['successful']
+
+        # Send POST request to db api in the logs collection
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)
-        response = requests.post(db_api_logs_url, json = logs_object)
-        print(logs_object)
-        return  response
+        response = requests.post(db_api_logs_url, json = db_log_object)
 
-    def _get_current_time(self):
-        current_time =  time.strftime('%Y%m%d%H%M%S')
-        return current_time
+        return  response.content.decode('ascii')
 
 
-
-    def _get_method_wait_time(self,method):
-        return 0
