@@ -1,6 +1,6 @@
 import click
 import requests
-import env_config
+import file_config as config
 
 @click.group('db')
 def db():
@@ -16,7 +16,7 @@ def db_add(new_object, collection):
     print(output)
 
 def add_data_to_db(data,collection):
-    db_api_url = env_config.get_db_url()
+    db_api_url = config.get_db_url()
     db_api_ip_route = "{}/{}".format(db_api_url,collection)
     try :
         output = requests.post(db_api_ip_route,json= data)

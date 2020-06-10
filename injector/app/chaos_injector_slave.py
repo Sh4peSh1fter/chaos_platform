@@ -6,10 +6,8 @@ import time
 
 class InjectionSlave():
 
-    def __init__(self,db_ip = "52.255.160.180",db_api_port = "5001" ):
-        self.db_ip = db_ip
-        self.db_api_port = db_api_port
-        self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
+    def __init__(self,db_api_url = "http://chaos.db.openshift:5001"):
+        self.db_api_url = db_api_url
 
 
     def initiate_fault(self,dns,fault):
@@ -28,7 +26,7 @@ class InjectionSlave():
             return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
         try :
             # Sends logs to db to be stored in the "logs" collection
-            db_response = self._send_result(logs_object,"logs")
+            db_response = self._send_result(dns,logs_object,"logs")
             return db_response
         except Exception as E:
             return { "exit_code":"1" ,"status": "Injector failed sending logs to db" }
@@ -221,7 +219,7 @@ class InjectionSlave():
 
 
 
-    def _send_result(self,logs_object,collection = "logs"):
+    def _send_result(self,dns,logs_object,collection = "logs"):
         # Get current time to timestamp the object
         current_time = self._get_current_time()
 
@@ -232,6 +230,7 @@ class InjectionSlave():
         db_log_object['name'] = "{}-{}".format(logs_object['name'],current_time)
         db_log_object['logs'] = logs_object
         db_log_object['successful'] = logs_object['successful']
+        db_log_object['target'] = dns
 
         # Send POST request to db api in the logs collection
         db_api_logs_url = "{}/{}".format(self.db_api_url,collection)

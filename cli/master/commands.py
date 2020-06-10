@@ -1,6 +1,6 @@
 import click
 import requests
-import env_config
+import file_config as config
 
 
 @click.group('master')
@@ -31,7 +31,7 @@ def chaos_info():
 
 
 def get_master_info():
-    master_url = env_config.get_master_url()
+    master_url = config.get_master_url()
     master_info_get_route = "{}/master-info".format(master_url)
     try :
         output = requests.get(master_info_get_route)
@@ -41,7 +41,7 @@ def get_master_info():
 
 
 def change_fault_timer_interval(new_timing_interval):
-    master_url = env_config.get_master_url()
+    master_url = config.get_master_url()
     master_timing_interval_update_route = "{}/set-interval".format(master_url)
     try :
         output = requests.post(master_timing_interval_update_route,json= {'interval' : new_timing_interval})
