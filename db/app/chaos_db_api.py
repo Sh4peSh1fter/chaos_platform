@@ -1,11 +1,16 @@
 from flask import Flask,jsonify,request
 from flask_pymongo import PyMongo
 from pymongo import errors
+import os
 
 app = Flask(__name__)
-mongodb_ip = input("> Enter mongodb ip - ")
-mongodb_port = input("> Enter mongodb port - ")
-db_name = input("> Enter db name - ")
+
+
+mongodb_ip = os.environ.get("DB_IP", "http://chaos.mongodb.openshift")
+mongodb_port = os.environ.get("DB_PORT", "8080")
+db_name = os.environ.get("DB_NAME", "chaos")
+
+
 mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
 app.config['MONGO_URI'] = mongodb_uri
