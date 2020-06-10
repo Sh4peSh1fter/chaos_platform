@@ -1,0 +1,4 @@
+
+    [console_scripts]
+    chaos=chaos_cli:cli_main
+    
