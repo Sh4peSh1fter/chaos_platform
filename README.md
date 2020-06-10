@@ -13,3 +13,9 @@ the injector slave must run on a linux machine on the injector user with the /ho
 
 # cli 
 the cli is made with the click library and is incharge of changing the fault timing interval and interacting witht the db api.
+
+# random picker 
+description of random picker 
+
+# master
+description of master
