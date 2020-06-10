@@ -160,7 +160,7 @@ class InjectionSlave():
         return script_in_ascii,script_name
 
     def create_script_file(self,script,script_name):
-        injector_home_dir = "/home/injector"
+        injector_home_dir = "/root"
         script_file_path = '{}/{}'.format(injector_home_dir,script_name)
         with open(script_file_path,'w') as script_file :
             script_file.write(script)

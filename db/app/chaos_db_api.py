@@ -1,11 +1,16 @@
 from flask import Flask,jsonify,request
 from flask_pymongo import PyMongo
 from pymongo import errors
+import os
 
 app = Flask(__name__)
-mongodb_ip = input("> Enter mongodb ip - ")
-mongodb_port = input("> Enter mongodb port - ")
-db_name = input("> Enter db name - ")
+
+
+mongodb_ip = os.environ.get("DB_IP", "http://chaos.mongodb.openshift")
+mongodb_port = os.environ.get("DB_PORT", "8080")
+db_name = os.environ.get("DB_NAME", "chaos")
+
+
 mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
 app.config['MONGO_URI'] = mongodb_uri
@@ -85,7 +90,7 @@ def add_group():
 @app.route('/method', methods=['GET'])
 def get_all_methods():
     collection = "methods"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -95,7 +100,7 @@ def get_one_method(name):
     collection = "methods"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -118,7 +123,7 @@ def add_method():
 @app.route('/probe', methods=['GET'])
 def get_all_probes():
     collection = "probes"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -128,7 +133,7 @@ def get_one_probe(name):
     collection = "probes"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -153,7 +158,7 @@ def add_probe():
 @app.route('/rollback', methods=['GET'])
 def get_all_rollbacks():
     collection = "rollbacks"
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -163,7 +168,7 @@ def get_one_rollback(name):
     collection = "rollbacks"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", "active","targets","content"]
+    expected_returned_keys = ["name", "active","targets","path"]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
@@ -237,6 +242,23 @@ def add_log():
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
 
+@app.route('/logs', methods=['GET'])
+@app.route('/log', methods=['GET'])
+def get_all_logs():
+    collection = "logs"
+    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    output = get_all_objects(collection, expected_returned_keys)
+    return output
+
+@app.route('/logs/<name>' ,methods=['GET'])
+@app.route('/log/<name>' ,methods=['GET'])
+def get_one_log(name):
+    collection = "logs"
+    identifier_key = "name"
+    identifier_value = name
+    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
 
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
     # Easyiest way to use a string as a property of an object
@@ -268,20 +290,24 @@ def get_all_objects(collection,expected_returned_keys):
 
 
 def add_object_to_db(collection,json_object,expected_returned_keys,identifier_key,identifier_value,default_request_values):
+
     # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
+
     # Last fault is in format of DAY:MONTH:YEAR:HOUR:MINUTE:SECOND
     json_object = parse_json_object(json_object, default_request_values)
+
     try:
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
-            new_object_id = objects.insert(json_object)
+            new_object_id = objects.insert_one(json_object, check_keys=False)
             query = objects.find_one({'_id': new_object_id})
-    except (errors.WriteError, TypeError) as e:
-        raise e
+    except (errors.WriteError, TypeError) as E:
+        print(E)
         return jsonify({'result': 'the object failed the validation schema'}), 400
     output = {}
+
     for expected_key in expected_returned_keys:
       output[expected_key] = query[expected_key]
 
