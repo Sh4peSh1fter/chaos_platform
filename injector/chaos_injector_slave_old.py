@@ -7,7 +7,7 @@ import time
 
 class InjectionSlave():
 
-    def __init__(self,db_ip = "192.168.56.103",db_api_port = "1738" ):
+    def __init__(self,db_ip = "52.255.160.180",db_api_port = "5001" ):
         self.db_ip = db_ip
         self.db_api_port = db_api_port
         self.db_api_url = "http://{}:{}".format(self.db_ip,self.db_api_port)
@@ -177,9 +177,12 @@ class InjectionSlave():
 
 
     def inject_script(self,dns,script_path):
+        # Run script
         proc = subprocess.Popen("python {} -dns {}".format(script_path,dns), stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, shell=True)
-        output = proc.communicate()[0]
+        # get output from proc turn it from binary to ascii and then remove /n if there is one
+        output = proc.communicate()[0].decode('ascii').rstrip()
+
         return output
 
     def probe_server(self,probe,dns):
