@@ -330,5 +330,4 @@ def add_data_to_array(collection,identifier_key_value,data,array_name):
         collection.update({identifier_key: identifier_value},{'$addToSet' : { array_name : data_cell}})
 
 if __name__ == '__main__':
-    #app.run(debug=True)
     app.run(host='0.0.0.0')
