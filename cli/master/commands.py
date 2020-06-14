@@ -19,7 +19,7 @@ def master_get():
 
 def chaos_set(timing_interval):
     if timing_interval :
-        output = change_fault_timer_interval(timing_interval)
+        output = change_fault_timer_interval(timing_interval).content.decode('ascii')
         print("\n{}".format(output))
 
 
