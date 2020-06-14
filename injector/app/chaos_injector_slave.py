@@ -202,6 +202,7 @@ class InjectionSlave():
         except Exception as E :
             return 0
 
+
     def _get_current_time(self):
         current_time =  time.strftime('%Y%m%d%H%M%S')
         return current_time
