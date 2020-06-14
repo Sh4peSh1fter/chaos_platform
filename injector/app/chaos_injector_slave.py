@@ -197,11 +197,15 @@ class InjectionSlave():
 
 
     def _get_method_wait_time(self,method):
-        return 0
+        try:
+            return  method['method_wait_time']
+        except Exception as E :
+            return 0
 
     def _get_current_time(self):
         current_time =  time.strftime('%Y%m%d%H%M%S')
         return current_time
+
 
     def _run_methods(self,methods,dns):
         method_logs = {}
