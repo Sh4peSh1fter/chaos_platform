@@ -1,5 +1,5 @@
 # chaos_platform
-platform for chaos engineering
+platform for chaos engineering, think Rundeck but from chaos.
 
 
 # db 
