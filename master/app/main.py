@@ -1,6 +1,6 @@
 from flask import Flask, request
 import os
-from master.app.chaos_master import ChaosMaster
+from  chaos_master import ChaosMaster
 
 random_picker_url = os.environ.get("PICKER_API", "http://127.0.0.1:5001")
 injector_url = os.environ.get("INJECTOR_API", "http://127.0.0.1:5002")
