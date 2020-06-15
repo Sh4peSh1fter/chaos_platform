@@ -13,17 +13,40 @@ def master_get():
     pass
 
 
-@master.command('set')
+@master.group('set')
+def chaos_set():
+    pass
+
+@master.group('add')
+def chaos_add():
+    pass
+
+
+
+@master.command('instance')
+@click.option('--group',default = None ,
+              help = "main group of instance",type = int,required = True)
+
+@click.option('--uid',default = None ,
+              help = "uid of masters user",type = str ,required = True)
+
 @click.option('--timing-interval',default = None ,
               help = "Time in seconds between each fault",type = int,required = False)
-@click.option('--uid',default = None ,
-              help = "uid of masters user",type = int,required = False)
+def chaos_add_instance(group, uid,timing_interval = 5):
+    output = add_chaos_instance(group, uid, timing_interval).content.decode('ascii')
+    print("\n{}".format(output))
 
-def chaos_set(timing_interval, uid):
-    if timing_interval :
+
+
+@master.command('interval')
+@click.option('--timing-interval',default = None ,
+              help = "Time in seconds between each fault",type = int,required = True)
+@click.option('--uid',default = None ,
+              help = "uid of masters user",type = str ,required = True)
+def chaos_set_interval(timing_interval, uid):
+    if timing_interval  :
         output = change_fault_timer_interval(timing_interval, uid).content.decode('ascii')
         print("\n{}".format(output))
-
 
 
 @master_get.command('info')
@@ -51,3 +74,12 @@ def change_fault_timer_interval(new_timing_interval, uid):
         output = "Could not connect to master at {} check connection ".format(master_timing_interval_update_route)
     return output
 
+
+def add_chaos_instance(group, uid, interval):
+    master_url = config.get_master_url()
+    master_add_master_route = "{}/add-master".format(master_url)
+    try :
+        output = requests.post(master_add_master_route, json= {'interval' : interval, 'uid' : uid, 'group' : group})
+    except :
+        output = "Could not connect to master at {} check connection ".format(master_add_master_route)
+    return output
