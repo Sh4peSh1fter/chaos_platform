@@ -6,13 +6,11 @@ import os
 app = Flask(__name__)
 
 
-mongodb_ip = os.environ.get("DB_IP", "http://chaos.mongodb.openshift")
-mongodb_port = os.environ.get("DB_PORT", "8080")
+mongodb_uri = os.environ.get("DB_URI", "mongodb://chaos.db.openshift:8080/chaos")
 db_name = os.environ.get("DB_NAME", "chaos")
-db_name = int(os.environ.get("LISTEN_PORT", "5001"))
+listen_port = int(os.environ.get("LISTEN_PORT", "5001"))
 
 
-mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
 app.config['MONGO_URI'] = mongodb_uri
 
@@ -331,4 +329,4 @@ def add_data_to_array(collection,identifier_key_value,data,array_name):
         collection.update({identifier_key: identifier_value},{'$addToSet' : { array_name : data_cell}})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port = db_name)
+    app.run(host='0.0.0.0', port = listen_port)
