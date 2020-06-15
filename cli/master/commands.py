@@ -25,7 +25,7 @@ def master_add():
 
 @master_add.command('instance')
 @click.option('--group',default = None ,
-              help = "main group of instance",type = int,required = True)
+              help = "main group of instance",type = str ,required = True)
 @click.option('--uid',default = None ,
               help = "uid of masters user",type = str ,required = True)
 
