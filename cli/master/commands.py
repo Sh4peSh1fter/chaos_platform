@@ -14,19 +14,18 @@ def master_get():
 
 
 @master.group('set')
-def chaos_set():
+def master_set():
     pass
 
 @master.group('add')
-def chaos_add():
+def master_add():
     pass
 
 
 
-@master.command('instance')
+@master_add.command('instance')
 @click.option('--group',default = None ,
               help = "main group of instance",type = int,required = True)
-
 @click.option('--uid',default = None ,
               help = "uid of masters user",type = str ,required = True)
 
@@ -38,7 +37,7 @@ def chaos_add_instance(group, uid,timing_interval = 5):
 
 
 
-@master.command('interval')
+@master_set.command('interval')
 @click.option('--timing-interval',default = None ,
               help = "Time in seconds between each fault",type = int,required = True)
 @click.option('--uid',default = None ,
