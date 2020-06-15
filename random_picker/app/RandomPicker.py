@@ -14,11 +14,11 @@ class Picker:
 
     # This function add server to queue of servers that have been injected recently.
     def add_server_to_queue(self, new_server):
-        if self.servers_queue == self.__queue_size:
-            self.__queue_size.pop(0)
-            self.__queue_size.append(new_server)
+        if self.servers_queue.length() == self.__queue_size:
+            self.servers_queue.pop(0)
+            self.servers_queue.append(new_server)
         else:
-            self.__queue_size.append(new_server)
+            self.servers_queue.append(new_server)
 
     def set_interval(self, new_interval):
         self.pick_interval = new_interval
