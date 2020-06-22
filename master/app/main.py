@@ -15,6 +15,7 @@ def set_new_interval():
     try:
         new_interval = json_object["interval"]
         uid = json_object["uid"]
+        print(master)
     except:
         return "interval and uid are required parameters", 400
     return master[str(uid)].set_interval(new_interval), 200
