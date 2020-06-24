@@ -302,7 +302,7 @@ def add_object_to_db(collection,json_object,expected_returned_keys,identifier_ke
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
-            new_object_id = objects.insert_one(json_object, check_keys=False)
+            new_object_id = objects.insert_one(json_object, bypass_document_validation=True)
             query = objects.find_one({'_id': new_object_id})
     except (errors.WriteError, TypeError) as E:
         print(E)
