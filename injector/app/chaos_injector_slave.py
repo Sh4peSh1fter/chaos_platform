@@ -35,15 +35,14 @@ class InjectionSlave():
 
     def _get_fault_info(self,fault_name):
         # Get json object for db rest api
-        db_fault_api_url = "{}/{}/{}".format(self.db_api_url, "fault", fault_name)
+        db_fault_api_url = f"{self.db_api_url}/fault/{fault_name}"
+
         fault_info = requests.get(db_fault_api_url).json()
         # Get the names of the parts of the fault
-        probes = fault_info["probes"]
-        methods = fault_info["methods"]
-        rollbacks = fault_info["rollbacks"]
         name  = fault_info["name"]
+        parts = ["probes", "methods", "rollbacks", "name"]
+        fault_structure = {key: value for key, value in fault_info.items() if key in parts}
 
-        fault_structure = {'probes' : probes , 'methods' : methods , 'rollbacks' : rollbacks}
 
         # fault_section can be the probes/methods/rollbacks part of the fault
         for fault_section in fault_structure.keys():
@@ -70,25 +69,20 @@ class InjectionSlave():
             rollbacks = fault_info['rollbacks']
 
         except Exception as E :
-            logs_object = {'name': "failed_fault" ,'exit_code' : '1' ,
+            logs_object = {'name': fault_name ,'exit_code' : '1' ,
                            'status' : 'expirement failed because parameters in db were missing ', 'error' : E}
             return logs_object
 
         try :
 
-            method_logs = {}
-            rollback_logs = {}
-            probe_after_method_logs = {}
+            method_log, rollback_logs, probe_after_method_logs, probe_after_rollback_logs= {}
 
             # Run probes and get logs and final probes result
             probes_result,probe_logs  = self._run_probes(probes,dns)
 
+            probe_logs = self._update_exit_status(probe_logs, probes_result, "begining")
             # If probes all passed continue
             if probes_result is True :
-
-                probe_logs['exit_code']  =  "0"
-                probe_logs['status'] = "Probes checked on victim server successfully"
-
                 # Run methods and  get logs and how much time to wait until checking self recovery
                 methods_wait_time, method_logs = self._run_methods(methods, dns)
 
@@ -96,13 +90,11 @@ class InjectionSlave():
                 sleep(methods_wait_time)
 
                 probes_result, probe_after_method_logs = self._run_probes(probes, dns)
+
                 # Check if server self healed after injection
-                if probes_result is True:
-                    probe_after_method_logs['exit_code'] = "0"
-                    probe_after_method_logs['status'] = "victim succsessfully self healed after injection"
-                else:
-                    probe_after_method_logs['exit_code'] = "1"
-                    probe_after_method_logs['status'] = "victim failed self healing after injection"
+                probe_after_method_logs = self._update_exit_status(probe_after_method_logs, probes_result, "method")
+
+                if probes_result is False:
 
                     # If server didnt self heal run rollbacks
                     for rollback in rollbacks:
@@ -111,28 +103,23 @@ class InjectionSlave():
                         rollback_logs[part_name] = part_log
 
                     sleep(methods_wait_time)
-                    probes_result, probe_after_method_logs = self._run_probes(probes, dns)
+
+                    probes_result, probe_after_rollback_logs = self._run_probes(probes, dns)
 
                     # Check if server healed after rollbacks
-                    if probes_result is True:
-                        rollbacks['exit_code'] = "0"
-                        rollbacks['status'] = "victim succsessfully  healed after rollbacks"
-                    else:
-                        rollbacks['exit_code'] = "1"
-                        rollbacks['status'] = "victim failed healing after rollbacks"
-            else :
-                probe_logs['exit_code'] = "1"
-                probe_logs['status'] = "Probes check failed on victim server"
+                    probe_after_rollback_logs = self._update_exit_status(probe_after_method_logs, probes_result, "rollback")
 
             logs_object = {'name': fault_name ,'exit_code' : '0' ,
-                           'status' : 'expirement ran as expected','rollbacks' : rollback_logs ,
-                           'probes' : probe_logs , 'method_logs' : method_logs,
-                           'probe_after_method_logs' : probe_after_method_logs}
+                           'status' : 'expirement ran as expected',
+                           'probes' : probe_logs ,
+                           'method_logs' : method_logs,
+                           'probe_after_method_logs' : probe_after_method_logs,
+                           'rollbacks': rollback_logs,
+                           'probe_after_rollback_logs' : probe_after_rollback_logs
+}
 
-            if logs_object["probe_after_method_logs"]["exit_code"] == "0" :
-                logs_object["successful"] = True
-            else:
-                logs_object["successful"] = False
+            logs_object["successful"] = probe_after_method_logs["exit_code"] == "0"
+
 
         except Exception as E:
             logs_object = {'name': fault_name ,'exit_code' : '1' ,
@@ -140,6 +127,16 @@ class InjectionSlave():
 
         return logs_object
 
+    def _update_exit_status(log, succssessful, status=""):
+        if not status:
+            if succssessful:
+                status_message = f"probes checked after {label}"
+            else:
+                status_message = f"probes failed after {label}"
+
+        log["exit_code"] = "0" if succssessful else  "1"
+        log["status"] = status_message
+        return log
 
     def _get_script(self,fault_part):
         file_share_url = fault_part['path']
