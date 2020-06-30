@@ -44,29 +44,32 @@ class InjectionSlave():
 
     def _get_fault_info(self,fault_name):
         # Get json object for db rest api
-        print("*/*")
         db_fault_api_url = f"{self.db_api_url}/fault/{fault_name}"
         fault_info = requests.get(db_fault_api_url).json()
         # Get the names of the parts of the fault
         name  = fault_info["name"]
         parts = ["probes", "methods", "rollbacks", "name"]
         fault_structure = {key: value for key, value in fault_info.items() if key in parts}
+        print("11111111111111111111111111")
 
         # fault_section can be the probes/methods/rollbacks part of the fault
         for fault_section in fault_structure.keys():
+            print("222222222222222222222222222222")
+
             fault_section_parts = []
 
             # section_part refers to a specific part of the probes/methods/rollbacks
             for section_part in fault_structure[fault_section]:
                 section_part_info = requests.get("{}/{}/{}".format(self.db_api_url,fault_section,section_part)).json()
                 fault_section_parts.append(section_part_info)
+                print("333333333333333333333333333")
 
             fault_structure[fault_section] = fault_section_parts
-            print(fault_structure)
 
         fault_structure["name"] =  name
+        print("444444444444444444444444444444444444444444")
+
         print(fault_structure)
-        print("()()()()()()()()(()()()")
         return fault_structure
 
 
