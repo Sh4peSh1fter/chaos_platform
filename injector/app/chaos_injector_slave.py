@@ -57,6 +57,8 @@ class InjectionSlave():
             print("222222222222222222222222222222")
 
             fault_section_parts = []
+            print(fault_section_parts)
+            print(fault_structure[fault_section])
 
             # section_part refers to a specific part of the probes/methods/rollbacks
             for section_part in fault_structure[fault_section]:
