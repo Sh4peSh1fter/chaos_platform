@@ -44,7 +44,9 @@ class InjectionSlave():
 
     def _get_fault_info(self,fault_name):
         # Get json object for db rest api
+        print("*/*")
         db_fault_api_url = f"{self.db_api_url}/fault/{fault_name}"
+        print(db_fault_api_url)
 
         fault_info = requests.get(db_fault_api_url).json()
         print(fault_info)
