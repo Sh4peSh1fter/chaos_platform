@@ -17,11 +17,13 @@ class InjectionSlave():
         try :
             # Gets fault full information from db
             fault_info = self._get_fault_info(fault_name)
+            print(fault_info)
         except Exception as E :
             return { "exit_code":"1" ,"status": "Injector failed gathering facts" }
         try :
             # Runs the probes,methods and rollbacks by order.
             logs_object = self._run_fault(dns, fault_info)
+            print(logs_object)
         except :
             return { "exit_code":"1" ,"status": "Injector failed injecting fault" }
         try :
