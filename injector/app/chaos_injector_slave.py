@@ -60,7 +60,7 @@ class InjectionSlave():
 
             # section_part refers to a specific part of the probes/methods/rollbacks
             for section_part in fault_structure[fault_section]:
-                print("{}/{}/{}".format(self.db_api_url,fault_section,section_part)
+                print("{}/{}/{}".format(self.db_api_url,fault_section,section_part))
 
                 section_part_info = requests.get("{}/{}/{}".format(self.db_api_url,fault_section,section_part)).json()
                 fault_section_parts.append(section_part_info)
