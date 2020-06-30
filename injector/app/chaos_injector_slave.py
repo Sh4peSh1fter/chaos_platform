@@ -11,6 +11,7 @@ class InjectionSlave():
 
 
     def initiate_fault(self,dns,fault):
+        print("#######################################################")
         return self._orchestrate_injection(dns,fault)
 
     def _orchestrate_injection(self,dns,fault_name):
