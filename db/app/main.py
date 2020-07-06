@@ -247,7 +247,7 @@ def add_log():
 @app.route('/log', methods=['GET'])
 def get_all_logs():
     collection = "logs"
-    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    expected_returned_keys = ["name", 'logs' , "date", "successful" , "target"]
     output = get_all_objects(collection, expected_returned_keys)
     return output
 
@@ -257,7 +257,7 @@ def get_one_log(name):
     collection = "logs"
     identifier_key = "name"
     identifier_value = name
-    expected_returned_keys = ["name", 'logs' , "date", "successful" ]
+    expected_returned_keys = ["name", 'logs' , "date", "successful", "target" ]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
