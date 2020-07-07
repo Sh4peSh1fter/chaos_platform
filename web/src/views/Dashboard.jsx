@@ -7,7 +7,6 @@ import { StatsCard } from "components/StatsCard/StatsCard.jsx";
 
 import {
   legendPie,
-  dataSales,
   optionsSales,
   responsiveSales,
   legendSales,
@@ -22,7 +21,23 @@ class Dashboard extends Component {
     logs : {},
     lastUpdated : '',
     logsUrl : 'http://52.255.160.180:5001/logs',
-    pieChartData : {}
+    groupsUrl : 'http://52.255.160.180:5001/groups',
+    serversUrl : 'http://52.255.160.180:5001/servers',
+    pieChartData : {
+      labels : [  
+      "10:00",
+      "11:30",
+      "13:00",
+      "14:30",
+      "16:00",
+      "18:30",
+      "20:30",
+      "22:00"],
+      series: [
+      ]
+    },
+    timeGraphData : {},
+    groupsReselientServersData : {}
   }
 
   componentDidMount() {
@@ -45,18 +60,19 @@ class Dashboard extends Component {
     this.setState({numOfSucceededFaults : this.divideLogsByExitCode(logs)['selfHealedLogs'].length})
     this.setState({numOfFailedFaults : (logs.length - this.divideLogsByExitCode(logs)['selfHealedLogs'].length)})
     this.setState({ascendingLogs : this.orderAscendingLogs(logs)});
-    this.setState({timeGraphData : this.getGraphData(this.state.ascendingLogs)});
-  }
+    this.setState({timeGraphData : this.getGraphData(logs) });
+    let this_refrense = this;
+    this.getGroupsReselientServersData(logs).then((data) =>{
+      this_refrense.setState({groupsReselientServersData : data})
+    }
+    )
+    console.log(this.state.groupsReselientServersData)
+  } 
 
-  reSetStates = () => {
-    fetch(this.state.logsUrl)
-    .then(res => res.json())
-    .then((data) => {
-      var logs_object = data['result']
-      this.setStates(logs_object)
-    })
-    .catch(console.log)
-
+  reSetStates =  () => {
+    this.fetchFromDb(this.state.logsUrl).then(logs => 
+      this.setStates(logs)
+    )
     setTimeout(this.reSetStates, 5000);
   }
 
@@ -124,37 +140,35 @@ class Dashboard extends Component {
   }
 
   getGraphData(ascendingLogs) {
-  console.log(ascendingLogs)
 
-  let dates = ascendingLogs.map(log =>  new Date(log['date'].replace(
-      /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/,
-      '$4:$5:$6 $2/$3/$1'
-  )));
-  console.log(dates)
+    let labels = [  
+      "10:00",
+      "11:30",
+      "13:00",
+      "14:30",
+      "16:00",
+      "18:30",
+      "20:30",
+      "22:00"
+    ]
+    let splitLabels = labels.map(label => label.split(":"))
+    let dates = []
+    for (let i = 0; i < splitLabels.length; i++ ){
+      dates[i] = new Date()
+      dates[i].setHours(parseInt(splitLabels[i][0]))
+      dates[i].setMinutes(parseInt(splitLabels[i][1]))
 
-  console.log(dates[dates.length - 1]);
+    }
 
-  let numberOfElements = 8
-  let timeGap = (dates[dates.length -1].getTime() - dates[0].getTime()) / numberOfElements;
-  let labels = []
- 
-    for (let i = 1; i < numberOfElements; i ++){
-      dates[i] = new  Date(dates[i - 1].getTime() + (timeGap));
-      
-    };
-
-    
     let devidedLogs = this.divideLogsByExitCode(ascendingLogs);
-    let selfHealed, rollbacked, failedHealing = new Array(dates.length)
-    selfHealed = this.getLogTypeGraphArray(devidedLogs['selfHealedLogs'],dates);
-    rollbacked = this.getLogTypeGraphArray(devidedLogs['rollbackedLogs'],dates);
-    failedHealing = this.getLogTypeGraphArray(devidedLogs['failedRollbackLogs'],dates);
-    
-    labels = dates.map(date => (date.getDate()+"/"+date.getMonth()+ "-" + date.getHours() 
-    + ":" + date.getHours()));
+    let selfHealed = this.getLogTypeGraphArray(devidedLogs['selfHealedLogs'],dates);
+    let rollbacked = this.getLogTypeGraphArray(devidedLogs['rollbackedLogs'],dates);
+    let failedHealing = this.getLogTypeGraphArray(devidedLogs['failedRollbackLogs'],dates);
+
     let series = [
       selfHealed,rollbacked,failedHealing
     ];
+
     let graphData = {
       labels,
       series
@@ -163,8 +177,9 @@ class Dashboard extends Component {
   }
 
   getLogTypeGraphArray(logsOfType,dates){
+
     let logTypeGraphArray = []
-    for (let i = 1; i < dates.length; i ++) { 
+    for (let i = 1; i <= dates.length; i ++) { 
       logTypeGraphArray.push(0)
       for (let j = 0; j < logsOfType.length; j++){
         let check =  new Date(logsOfType[j]['date'].replace(
@@ -174,11 +189,11 @@ class Dashboard extends Component {
         let from = dates[i - 1];
         let to = dates[i];
         if (check > from && check < to){
-          logTypeGraphArray[i -1] ++;
+          logTypeGraphArray[i - 1] ++;
         }
       }
       if (logTypeGraphArray[i -1] === 0){
-        logTypeGraphArray[i -1] = null;
+        logTypeGraphArray[i -1] = 0;
       }
     }
     return logTypeGraphArray
@@ -196,8 +211,49 @@ class Dashboard extends Component {
     return precentageOfLogType
   }
 
+ async getGroupsReselientServersData(logs){
+    let groups = (await this.fetchFromDb(this.state.groupsUrl)).map(group => group['name']);
+    let servers = (await this.fetchFromDb(this.state.serversUrl));
+    let serverToGroups =  {} 
+    await servers.map(server =>  serverToGroups[server['dns']] = server['groups']);
+    let devidedLogs = this.divideLogsByExitCode(logs)
+    let series = [[],[],[]];
+    for (let i = 0; i < groups.length;i ++){
+      series[0].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['selfHealedLogs'],serverToGroups));
+      series[1].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['rollbackedLogs'],serverToGroups));
+      series[2].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['failedRollbackLogs'],serverToGroups));
+    }
+    let data = {
+      labels : groups,
+      series
+    }
+    return data
+  }
 
 
+  getNumberOfGroupLogs(group,logs,serverToGroups){
+    let numberOfLogs = 0
+    logs.forEach(function (log, index) {
+      let target_groups = serverToGroups[log['target']]
+      if(target_groups.includes(group)){
+        numberOfLogs ++;
+      }
+    });
+    return numberOfLogs
+  }
+  
+  async fetchFromDb(url){
+    let response = await fetch(url)
+    .then(res => res.json())
+    .then((data) => { 
+      let response = data['result']; 
+      return response;
+     })
+    .catch(console.log);
+    return response;
+  }
+
+  
   getCurrentTime(){
     var d = new Date();
     return d.toLocaleString()
@@ -291,7 +347,7 @@ class Dashboard extends Component {
           </Row>
 
           <Row>
-            <Col md={6}>
+            <Col md={10}>
               <Card
                 id="chartActivity"
                 title="Resilient Servers To Failed Servers"
@@ -299,7 +355,7 @@ class Dashboard extends Component {
                 content={
                   <div className="ct-chart">
                     <ChartistGraph
-                      data={dataBar}
+                      data={this.state.groupsReselientServersData}
                       type="Bar"
                       options={optionsBar}
                       responsiveOptions={responsiveBar}

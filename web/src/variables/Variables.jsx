@@ -479,7 +479,7 @@ var dataPie = {
 
 var legendPie = {
   names: ["Failed Faults", "failed probes",  "Failed Healing", "Healed With Rollbacks", "Self Healed"],
-  types: ['bla  k', "danger","warning",'info',"success"]
+  types: ['black', "danger","warning",'info',"success"]
 };
 
 // Data for Line Chart
@@ -502,7 +502,7 @@ var dataSales = {
 };
 var optionsSales = {
   low: 0,
-  high: 800,
+  high: 30,
   showArea: false,
   height: "245px",
   axisX: {
@@ -536,22 +536,14 @@ var legendSales = {
 // Data for Bar Chart
 var dataBar = {
   labels: [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "Mai",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
+    "mssql servers",
+    "apache servers",
+    "IIS servers"
   ],
   series: [
-    [542, 443, 320, 780, 553, 453, 326, 434, 568, 610, 756, 895],
-    [412, 243, 280, 580, 453, 353, 300, 364, 368, 410, 636, 695]
+    [0, 0, 0],
+    [412, 243, 280],
+    [511, 52, 456]
   ]
 };
 var optionsBar = {
