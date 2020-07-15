@@ -66,7 +66,6 @@ class Dashboard extends Component {
       this_refrense.setState({groupsReselientServersData : data})
     }
     )
-    console.log(this.state.groupsReselientServersData)
   } 
 
   reSetStates =  () => {
@@ -126,6 +125,7 @@ class Dashboard extends Component {
         devidedLogs['failedFaults'].push(logsList[i]);
       }
     }
+
     return devidedLogs
   }
 
@@ -162,13 +162,13 @@ class Dashboard extends Component {
 
     let devidedLogs = this.divideLogsByExitCode(ascendingLogs);
     let selfHealed = this.getLogTypeGraphArray(devidedLogs['selfHealedLogs'],dates);
-    let rollbacked = this.getLogTypeGraphArray(devidedLogs['rollbackedLogs'],dates);
-    let failedHealing = this.getLogTypeGraphArray(devidedLogs['failedRollbackLogs'],dates);
+    let rollbacked = this.getLogTypeGraphArray(devidedLogs['failedRollbackLogs'],dates);
+    let failedHealing = this.getLogTypeGraphArray(devidedLogs['rollbackedLogs'],dates);
 
     let series = [
-      selfHealed,rollbacked,failedHealing
+      selfHealed,failedHealing,rollbacked
     ];
-
+    console.log(devidedLogs['rollbackedLogs'])
     let graphData = {
       labels,
       series
@@ -220,8 +220,8 @@ class Dashboard extends Component {
     let series = [[],[],[]];
     for (let i = 0; i < groups.length;i ++){
       series[0].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['selfHealedLogs'],serverToGroups));
-      series[1].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['rollbackedLogs'],serverToGroups));
-      series[2].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['failedRollbackLogs'],serverToGroups));
+      series[1].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['failedRollbackLogs'],serverToGroups));
+      series[2].push(await this.getNumberOfGroupLogs(groups[i],devidedLogs['rollbackedLogs'],serverToGroups));
     }
     let data = {
       labels : groups,
@@ -347,7 +347,7 @@ class Dashboard extends Component {
           </Row>
 
           <Row>
-            <Col md={10}>
+            <Col md={13}>
               <Card
                 id="chartActivity"
                 title="Resilient Servers To Failed Servers"

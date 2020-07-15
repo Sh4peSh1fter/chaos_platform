@@ -225,7 +225,6 @@ var style = {
       backgroundColor: "#ffbc67",
       color: "#ffffff"
     },
-
     info: {
       backgroundColor: "#63d8f1",
       color: "#ffffff"
@@ -479,7 +478,7 @@ var dataPie = {
 
 var legendPie = {
   names: ["Failed Faults", "failed probes",  "Failed Healing", "Healed With Rollbacks", "Self Healed"],
-  types: ['black', "danger","warning",'info',"success"]
+  types: ['failure', "danger","warning",'info',"success"]
 };
 
 // Data for Line Chart
@@ -567,8 +566,8 @@ var responsiveBar = [
   ]
 ];
 var legendBar = {
-  names: ["Self Healed", "Failed Self Healing"],
-  types: ["info", "danger"]
+  names: ["Self Healed","rolled back",  "Failed Self Healing",],
+  types: ["info","warning" ,"danger"]
 };
 
 module.exports = {

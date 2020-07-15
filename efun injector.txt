@@ -1,0 +1,41 @@
+0. creates expierement object in db with loading status.
+
+1. gets dns + fault name
+
+2. connects to server with dns
+
+3. creates dir in /tmp / c:\temp 
+
+4. creates parameter file in dir 
+
+5. copys exe file to dir
+
+6. executes file 
+
+7. checks every X time if expierement status is done in db 
+
+8. removes created dir.
+
+
+
+EXE file 
+
+
+1. gets info from parameter file
+
+2. changes status in db of expiremment to running 
+
+3. gets probes one by one and checks if they passed 
+
+4. if passed runs methods one by one and waits specified time 
+
+5. gets probes one by one and checks if they passed 
+
+6. if failed runs rollbacks and waits specified time 
+
+7. gets probes one by one and checks if they passed 
+
+8. sends logs to DB 
+
+9. changes status in db of expiremment to done
+
