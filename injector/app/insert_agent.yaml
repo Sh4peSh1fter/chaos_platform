@@ -1,0 +1,28 @@
+---
+
+- hosts : '{{ host }}'
+
+  - name: Create a directory if it does not exist
+    file:
+      path: /tmp/chaos_expirement
+      state: directory
+      mode: '0755'
+
+  - name: Copy fault runner script
+  copy:
+    src: /etc/chaos_files/fault_runner.pyc
+    dest: /tmp/chaos_expirement/fault_runner.pyc
+    owner: foo
+    group: foo
+    mode: '0755'
+
+  - name: Copy configuration file for the fault
+  copy:
+    src: /etc/chaos_files/tmp/fault.conf
+    dest: /tmp/chaos_expirement/fault.conf
+    owner: foo
+    group: foo
+    mode: '0644'
+
+  - name: Execute the fault runner
+  shell: /tmp/chaos_expirement/fault_runner.pyc

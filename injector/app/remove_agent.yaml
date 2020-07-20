@@ -1,0 +1,7 @@
+---
+
+- hosts : '{{ host }}'
+
+  - name: remove directory and all scripts inside it
+    path: /tmp/chaos_expirement
+    state: absent
