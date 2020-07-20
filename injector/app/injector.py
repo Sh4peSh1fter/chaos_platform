@@ -12,7 +12,7 @@ class Injector :
     def start_expirement(self, dns, fault_name):
         experiment_id = self._set_object_in_db(dns, fault_name, "loading")
         self._create_config_file(dns, experiment_id, fault_name)
-        self._inject_victim(dns)
+        self._run_playbook('insert_agent.yaml', dns)
 
         # Set vars that decide how often to check if experiment is finished
         experiment_finished = False
@@ -27,10 +27,8 @@ class Injector :
             if max_waited_time <= waited_time :
                 break
 
-        self._clean_victim(dns)
+        self._run_playbook('remove_agent.yaml', dns)
         self._set_object_in_db(dns, fault_name, "completed")
-
-
 
     def _set_object_in_db(self, dns, fault_name, status):
         experiment_object = {'timestamp' : self._get_current_time(),
@@ -55,8 +53,8 @@ class Injector :
             json.dump(data, outfile)
 
     @staticmethod
-    def _inject_victim(dns):
-        subprocess.run(["ansible-playbook", f"-l {dns}"])
+    def _run_playbook(dns, playbook_name):
+        subprocess.run(["ansible-playbook", f"{playbook_name}", f"-l {dns}"])
 
     def _is_expirement_finished(self, experiment_id):
         experiment_obj = requests.get(f"{self.db_api_url}/experiments/{experiment_id}").json()
@@ -65,6 +63,3 @@ class Injector :
         else:
             return False
 
-
-    def _clean_victim(self,dns):
-        pass
