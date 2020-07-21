@@ -8,6 +8,7 @@ class Injector :
     def __init__(self,db_api_url = "http://chaos.db.openshift:5001"):
         self.db_api_url = db_api_url
 
+
     def start_expirement(self, dns, fault_name):
         experiment_id = self._set_object_in_db(dns, fault_name, "loading")
         self._create_config_file(dns, experiment_id, fault_name)
@@ -58,7 +59,7 @@ class Injector :
     def _get_os_type(self,dns):
         os_type = "linux"
         return os_type
-    
+
     def _is_expirement_finished(self, experiment_id):
         experiment_obj = requests.get(f"{self.db_api_url}/experiments/{experiment_id}").json()
         if experiment_obj['status'] == 'finished_injection':
