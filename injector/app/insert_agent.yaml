@@ -42,8 +42,6 @@
           win_copy:
             src: /etc/chaos_files/fault_runner.pyc
             dest: C:\Temp\chaos_expirement\fault_runner.pyc
-            owner: root
-            group: root
 
         - name: Copy configuration file for the fault
           win_copy:
