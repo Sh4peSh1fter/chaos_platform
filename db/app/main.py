@@ -260,6 +260,33 @@ def get_one_log(name):
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
     return output
 
+
+@app.route('/experiments', methods=['POST'])
+@app.route('/experiments', methods=['POST'])
+def add_experiment():
+    collection = "experiments"
+    json_object = request.get_json()
+    expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
+    identifier_key = "name"
+    try:
+        identifier_value = json_object["id"]
+    except KeyError:
+        return "id is a required parameter", 400
+    default_request_values = {'successful' : False }
+
+    output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
+    return output
+
+@app.route('/experiments/<name>' ,methods=['GET'])
+@app.route('/experiments/<name>' ,methods=['GET'])
+def get_one_experiment(name):
+    collection = "experiments"
+    identifier_key = "name"
+    identifier_value = name
+    expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
+    output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
+
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
     # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
