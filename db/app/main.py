@@ -6,10 +6,10 @@ import os
 app = Flask(__name__)
 
 
-mongodb_ip = os.environ.get("DB_IP", "http://chaos.mongodb.openshift")
+mongodb_ip = os.environ.get("DB_IP", "chaos.mongodb.openshift")
 mongodb_port = os.environ.get("DB_PORT", "8080")
 db_name = os.environ.get("DB_NAME", "chaos")
-
+mongodb_ip = "52.255.160.180"
 
 mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
@@ -281,7 +281,7 @@ def add_experiment():
 @app.route('/experiments/<name>' ,methods=['GET'])
 def get_one_experiment(name):
     collection = "experiments"
-    identifier_key = "name"
+    identifier_key = "id"
     identifier_value = name
     expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
@@ -296,7 +296,7 @@ def get_one_object(collection,identifier_key,identifier_value,expected_returned_
         for key in expected_returned_keys :
             output[key] = query[key]
     else :
-        output = "fault not found"
+        output = "object not found"
     return jsonify(output)
 
 
@@ -328,7 +328,7 @@ def add_object_to_db(collection,json_object,expected_returned_keys,identifier_ke
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
-            new_object_id = objects.insert_one(json_object, check_keys=False)
+            new_object_id = objects.insert(json_object, check_keys=False)
             query = objects.find_one({'_id': new_object_id})
     except (errors.WriteError, TypeError) as E:
         print(E)
@@ -357,5 +357,4 @@ def add_data_to_array(collection,identifier_key_value,data,array_name):
         collection.update({identifier_key: identifier_value},{'$addToSet' : { array_name : data_cell}})
 
 if __name__ == '__main__':
-    #app.run(debug=True)
     app.run(host='0.0.0.0')
