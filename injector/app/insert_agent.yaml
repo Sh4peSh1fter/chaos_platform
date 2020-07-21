@@ -1,28 +1,61 @@
 ---
 
 - hosts : '{{ host }}'
+  tasks:
+    - name: Insert agent for linux/unix hosts
+      block:
+        - name: Create a directory if it does not exist
+          file:
+            path: /tmp/chaos_expirement
+            state: directory
+            mode: '0755'
 
-  - name: Create a directory if it does not exist
-    file:
-      path: /tmp/chaos_expirement
-      state: directory
-      mode: '0755'
+        - name: Copy fault runner script
+          copy:
+            src: /etc/chaos_files/fault_runner.pyc
+            dest: /tmp/chaos_expirement/fault_runner.pyc
+            owner: root
+            group: root
+            mode: '0755'
 
-  - name: Copy fault runner script
-  copy:
-    src: /etc/chaos_files/fault_runner.pyc
-    dest: /tmp/chaos_expirement/fault_runner.pyc
-    owner: foo
-    group: foo
-    mode: '0755'
+        - name: Copy configuration file for the fault
+          copy:
+            src: /etc/chaos_files/tmp/fault.conf
+            dest: /tmp/chaos_expirement/fault.conf
+            owner: root
+            group: root
+            mode: '0644'
 
-  - name: Copy configuration file for the fault
-  copy:
-    src: /etc/chaos_files/tmp/fault.conf
-    dest: /tmp/chaos_expirement/fault.conf
-    owner: foo
-    group: foo
-    mode: '0644'
+        - name: Execute the fault runner
+          shell: /tmp/chaos_expirement/fault_runner.pyc
+      when: os_type == 'linux'
 
-  - name: Execute the fault runner
-  shell: /tmp/chaos_expirement/fault_runner.pyc
+
+    - name: Insert agent for windows hosts
+      block:
+        - name: Create a directory if it does not exist
+          win_file:
+            path: C:\Temp\chaos_expirement
+            state: directory
+
+        - name: Copy fault runner script
+          win_copy:
+            src: /etc/chaos_files/fault_runner.pyc
+            dest: C:\Temp\chaos_expirement\fault_runner.pyc
+            owner: root
+            group: root
+
+        - name: Copy configuration file for the fault
+          win_copy:
+            src: /etc/chaos_files/tmp/fault.conf
+            dest: C:\Temp\chaos_expirement\fault.conf
+
+        - name: Execute the fault runner
+          win_command: C:\Temp\chaos_expirement\fault_runner.pyc
+      when: os_type == 'windows'
+      vars:
+        ansible_user: "{{ windows_username }}@{{ domain }}"
+        ansible_password: "{{ windows_password }}"
+        ansible_connection: winrm
+        ansible_winrm_transport: kerberos
+        ansible_winrm_kinit_mode: managed

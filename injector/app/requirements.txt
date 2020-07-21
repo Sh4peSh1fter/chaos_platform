@@ -1,2 +1,5 @@
 requests
 flask
+ansible
+pywinrm
+pywinrm[kerberos]

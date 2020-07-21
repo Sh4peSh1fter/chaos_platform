@@ -8,7 +8,6 @@ class Injector :
     def __init__(self,db_api_url = "http://chaos.db.openshift:5001"):
         self.db_api_url = db_api_url
 
-
     def start_expirement(self, dns, fault_name):
         experiment_id = self._set_object_in_db(dns, fault_name, "loading")
         self._create_config_file(dns, experiment_id, fault_name)
@@ -30,7 +29,7 @@ class Injector :
         self._run_playbook('remove_agent.yaml', dns)
         self._set_object_in_db(dns, fault_name, "completed")
 
-    def _set_object_in_db(self, dns, fault_name, status):
+    def _set_object_in_db(self, dns, fault_name, status, http_method):
         experiment_object = {'timestamp' : self._get_current_time(),
                              'victim' : dns, "fault_name" : fault_name,
                              'status' : status

@@ -1,7 +1,23 @@
 ---
 
 - hosts : '{{ host }}'
+  tasks:
+    - name: remove directory and all scripts inside it for linux
+      file:
+        path: /tmp/chaos_expirement
+        state: absent
+      when: os_type == 'linux'
 
-  - name: remove directory and all scripts inside it
-    path: /tmp/chaos_expirement
-    state: absent
+    - name: remove directory and all scripts inside it for windows
+      win_file:
+        path: C:\Temp\chaos_expirement
+        state: absent
+      when: os_type == 'windows'
+      vars:
+        ansible_user: "{{ windows_username }}@{{ domain }}"
+        ansible_password: "{{ windows_password }}"
+        ansible_connection: winrm
+        ansible_winrm_transport: kerberos
+        ansible_winrm_kinit_mode: managed
+
+
