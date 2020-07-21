@@ -51,10 +51,14 @@ class Injector :
         with open(conf_file, 'w') as outfile:
             json.dump(data, outfile)
 
-    @staticmethod
-    def _run_playbook(dns, playbook_name):
-        subprocess.run(["ansible-playbook", f"{playbook_name}", f"-l {dns}"])
+    def _run_playbook(self, dns, playbook_name):
+        os_type = self._get_os_type(dns)
+        subprocess.run(["ansible-playbook", f"{playbook_name}", f'-e "host={dns} os_type={os_type}"'])
 
+    def _get_os_type(self,dns):
+        os_type = "linux"
+        return os_type
+    
     def _is_expirement_finished(self, experiment_id):
         experiment_obj = requests.get(f"{self.db_api_url}/experiments/{experiment_id}").json()
         if experiment_obj['status'] == 'finished_injection':
