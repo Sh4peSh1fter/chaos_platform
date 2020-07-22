@@ -313,7 +313,8 @@ def get_all_objects(collection,expected_returned_keys):
     return jsonify({'result' : output})
 
 
-
+def update_object_in_db():
+    pass        
 
 
 def add_object_to_db(collection,json_object,expected_returned_keys,identifier_key,identifier_value,default_request_values):
@@ -325,6 +326,7 @@ def add_object_to_db(collection,json_object,expected_returned_keys,identifier_ke
     json_object = parse_json_object(json_object, default_request_values)
 
     try:
+        print(objects.find({identifier_key: identifier_value}).count_)
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
