@@ -278,7 +278,7 @@ def add_experiment():
     collection = "experiments"
     json_object = request.get_json()
     expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
-    identifier_key = "name"
+    identifier_key = "id"
     try:
         identifier_value = json_object["id"]
     except KeyError:
@@ -333,12 +333,10 @@ def add_object_to_db(collection,json_object,expected_returned_keys,identifier_ke
     # Easyiest way to use a string as a property of an object
     objects = eval("mongo.db.{}".format(collection))
 
-    # Last fault is in format of DAY:MONTH:YEAR:HOUR:MINUTE:SECOND
+    # Fill out default values if not in sent object
     json_object = parse_json_object(json_object, default_request_values)
-
     try:
-        print(objects.find({identifier_key: identifier_value}).count_)
-        if objects.find({identifier_key: identifier_value}).count() > 0:
+        if objects.count_documents({identifier_key: identifier_value}) > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
             new_object_id = objects.insert(json_object, check_keys=False)
