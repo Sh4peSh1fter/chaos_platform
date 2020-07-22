@@ -262,8 +262,18 @@ def get_one_log(name):
     return output
 
 
+
+@app.route('/experiments', methods=['GET'])
+@app.route('/experiment', methods=['GET'])
+def get_all_experiments():
+    collection = "experiments"
+    expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
+    output = get_all_objects(collection, expected_returned_keys)
+    return output
+
+
 @app.route('/experiments', methods=['POST'])
-@app.route('/experiments', methods=['POST'])
+@app.route('/experiment', methods=['POST'])
 def add_experiment():
     collection = "experiments"
     json_object = request.get_json()
