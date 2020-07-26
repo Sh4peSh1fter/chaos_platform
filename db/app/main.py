@@ -290,14 +290,29 @@ def add_experiment():
     return output
 
 
-@app.route('/experiments/<name>' ,methods=['GET'])
-@app.route('/experiments/<name>' ,methods=['GET'])
-def get_one_experiment(name):
+@app.route('/experiments/<id>' ,methods=['GET'])
+@app.route('/experiments/<id>' ,methods=['GET'])
+def get_one_experiment(id):
     collection = "experiments"
     identifier_key = "id"
-    identifier_value = name
+    identifier_value = id
     expected_returned_keys = ["id", 'status' , "start_time", "end_time" ,"successful" ]
     output = get_one_object(collection, identifier_key, identifier_value, expected_returned_keys)
+    return output
+
+
+@app.route('/experiments/<id>', methods=['PUT'])
+@app.route('/experiment/<id>', methods=['PUT'])
+def update_experiment(id):
+    collection = "experiments"
+    json_object = request.get_json()
+    print(request.get_json())
+    identifier_key = "id"
+    try:
+        identifier_value = id
+    except KeyError:
+        return "id is a required parameter", 400
+    output = update_object_in_db(collection, json_object, identifier_key, identifier_value)
     return output
 
 def get_one_object(collection,identifier_key,identifier_value,expected_returned_keys):
@@ -326,8 +341,10 @@ def get_all_objects(collection,expected_returned_keys):
     return jsonify({'result' : output})
 
 
-def update_object_in_db():
-    pass
+def update_object_in_db(collection, json_object, identifier_key, identifier_value):
+    objects = eval("mongo.db.{}".format(collection))
+    output = objects.update({identifier_key: identifier_value}, {'$set' : json_object} )
+    return  output
 
 
 def add_object_to_db(collection,json_object,expected_returned_keys,identifier_key,identifier_value,default_request_values):
@@ -362,12 +379,5 @@ def parse_json_object(json_object,default_values_dict):
             json_object[default_key] = default_values_dict[default_key]
     return  json_object
 
-def add_data_to_array(collection,identifier_key_value,data,array_name):
-    identifier_key = identifier_key_value['identifier_key']
-    identifier_value = identifier_key_value['identifier_value']
-    data = [] + data
-    for data_cell in data :
-        collection.update({identifier_key: identifier_value},{'$addToSet' : { array_name : data_cell}})
-
 if __name__ == '__main__':
-    app.run(host='0.0.0.0' , port=server_port)
+    app.run(host='0.0.0.0' , port=server_port,debug=True)
