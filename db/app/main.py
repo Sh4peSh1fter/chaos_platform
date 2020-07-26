@@ -12,7 +12,6 @@ mongodb_ip = os.environ.get("DB_IP", "chaos.mongodb.openshift")
 mongodb_port = os.environ.get("DB_PORT", "8080")
 db_name = os.environ.get("DB_NAME", "chaos")
 server_port = int(os.environ.get("SERVER_PORT", 5001))
-mongodb_ip = "52.255.160.180"
 
 mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
