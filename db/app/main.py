@@ -380,4 +380,4 @@ def parse_json_object(json_object,default_values_dict):
     return  json_object
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0' , port=server_port,debug=True)
+    app.run(host='0.0.0.0' , port=server_port)
