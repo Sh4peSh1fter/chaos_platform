@@ -263,6 +263,7 @@ def get_one_log(name):
 
 
 
+
 @app.route('/experiments', methods=['GET'])
 @app.route('/experiment', methods=['GET'])
 def get_all_experiments():
@@ -287,6 +288,7 @@ def add_experiment():
 
     output = add_object_to_db(collection, json_object, expected_returned_keys, identifier_key, identifier_value,default_request_values)
     return output
+
 
 @app.route('/experiments/<name>' ,methods=['GET'])
 @app.route('/experiments/<name>' ,methods=['GET'])
