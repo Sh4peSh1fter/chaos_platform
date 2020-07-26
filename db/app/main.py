@@ -8,11 +8,13 @@ app = Flask(__name__)
 CORS(app)
 
 
-mongodb_uri = os.environ.get("DB_URI", "mongodb://chaos.db.openshift:8080/chaos")
+mongodb_ip = os.environ.get("DB_IP", "chaos.mongodb.openshift")
+mongodb_port = os.environ.get("DB_PORT", "8080")
 db_name = os.environ.get("DB_NAME", "chaos")
-listen_port = int(os.environ.get("LISTEN_PORT", "5001"))
+server_port = int(os.environ.get("SERVER_PORT", 5001))
+mongodb_ip = "52.255.160.180"
 
-
+mongodb_uri = "mongodb://{}:{}/{}".format(mongodb_ip,mongodb_port,db_name)
 app.config['MONGODB_NAME'] = db_name
 app.config['MONGO_URI'] = mongodb_uri
 
@@ -302,7 +304,7 @@ def add_object_to_db(collection,json_object,expected_returned_keys,identifier_ke
         if objects.find({identifier_key: identifier_value}).count() > 0:
            return {"result" : "object with the same identifier already exists"}, 400
         else:
-            new_object_id = objects.insert(json_object, check_keys = False)
+            new_object_id = objects.insert(json_object, check_keys=False)
             query = objects.find_one({'_id': new_object_id})
     except (errors.WriteError, TypeError) as E:
         print(E)
@@ -331,4 +333,4 @@ def add_data_to_array(collection,identifier_key_value,data,array_name):
         collection.update({identifier_key: identifier_value},{'$addToSet' : { array_name : data_cell}})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port = listen_port)
+    app.run(host='0.0.0.0' , port=server_port)
