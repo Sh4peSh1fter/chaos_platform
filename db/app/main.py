@@ -2,9 +2,10 @@ from flask import Flask,jsonify,request
 from flask_pymongo import PyMongo
 from pymongo import errors
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 
 mongodb_ip = os.environ.get("DB_IP", "chaos.mongodb.openshift")
 mongodb_port = os.environ.get("DB_PORT", "8080")
